@@ -1,0 +1,45 @@
+{
+  "id": 3,
+  "title": "AUTHOR",
+  "subtitle": "Introduction",
+  "author": "Dr. Sakshi",
+  "category": "General Health",
+  "reads": "1.6k",
+  "desc": "AUTHOR'S NOTE\nThis book represents original work based on the author's 36 years of clinical practice in family medicine, women's health, and lifestyle...",
+  "image": "/Images/girlsgroup.png",
+  "readsTime": "5 mins",
+  "chapters": [
+    {
+      "title": "Introduction",
+      "startPage": 0,
+      "endPage": 2
+    }
+  ],
+  "pages": [
+    "<p>AUTHOR'S NOTE</p>\n<p>This book represents original work based on the author's 36 years of clinical practice in family medicine, women's health, and lifestyle medicine. All medical concepts, patient scenarios, treatment approaches, and teaching methods originate from direct clinical experience with thousands of patients. This book does not contain direct text copying, copied structural organization, verbatim reproduction of tables or lists, or any copyright infringement.</p>\n<p>AI-Assisted Creation Process: This book was created using AI assistance as a professional writing tool, not AI generation. The author provided all medical expertise, clinical knowledge, original patient stories, treatment protocols, book structure, cultural context, and the HealthSakhi philosophy. AI assisted with editing for clarity, organizing information, formatting text, creating indices, correcting grammar, structuring paragraphs, and technical preparation for publishing. The author retained complete control over all medical content and final approval.</p>",
+    "<p>Medical Knowledge Sources: Medical facts represent established clinical knowledge from the author's medical education (MBBS, MSc, PGDip, Harvard-certified lifestyle medicine coach), 36 years of patient care, continuing medical education, and evidence-based literature. General medical knowledge is expressed in the author's distinctive teaching voice developed through patient counseling. Specific research citations are provided where applicable.</p>\n<p>The HealthSakhi Voice: The warm, counseling tone—addressing readers as \"my dear daughter\" and using affectionate language—reflects the authentic voice used in clinical practice. This communication style, combining medical expertise with emotional support and cultural sensitivity, represents the author's personal approach developed over decades. The HealthSakhi philosophy—strīṇāṃ svāsthyaṃ kuṭumba svāsthyaṃ (a woman's health is her family's health)—guides every recommendation in this book.</p>",
+    "<p>— Dr. Pratap Madhukar, MBBS MSc PGDip, LIFE STYLE AND WELLNESS COACH , FOUNDER <a href=\"http://WWW.HEALTHSAKHI.COM\">WWW.HEALTHSAKHI.COM</a> , AUTHOR OF ALL HEALTHSAKHI WELLNESS BOOK SERIES </p>\n<p>Copyright © 2026. All rights reserved</p>"
+  ],
+  "questions": [
+    {
+      "question": "What is the primary theme discussed in \"AUTHOR\"?",
+      "options": [
+        "Holistic Wellness",
+        "Modern Medicine",
+        "Physical Strength",
+        "Emotional Control"
+      ],
+      "correct": 0
+    },
+    {
+      "question": "According to the author, healing begins with...",
+      "options": [
+        "External changes",
+        "Self-awareness & compassion",
+        "Strict dieting",
+        "Ignoring feelings"
+      ],
+      "correct": 1
+    }
+  ]
+}

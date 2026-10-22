@@ -1,0 +1,149 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Shield, Lock, FileText, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
+
+const CONTENT = {
+  en: {
+    back: 'Back to Home',
+    title: 'Privacy Policy',
+    lastUpdated: 'Last Updated: May 2026',
+    sections: [
+      {
+        title: 'Introduction',
+        text: 'At HealthSakhi, we respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website or use our application.'
+      },
+      {
+        title: 'Data Collection',
+        text: 'We collect information that you provide directly to us when you create an account, participate in our wellness programs, or communicate with us. This may include your name, email address, phone number, and health-related preferences you choose to share.'
+      },
+      {
+        title: 'How We Use Your Data',
+        text: 'Your data is used to provide personalized wellness insights, manage your subscription, and improve our services. We do not sell your personal data to third parties.'
+      },
+      {
+        title: 'Medical Disclaimer',
+        text: 'The information provided by HealthSakhi is for educational and informational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.',
+        isDisclaimer: true
+      },
+      {
+        title: 'Contact Us',
+        text: 'If you have any questions about this Privacy Policy, please contact us at hello@healthsakhi.com.'
+      }
+    ]
+  },
+  hi: {
+    back: 'होम पर वापस जाएं',
+    title: 'गोपनीयता नीति',
+    lastUpdated: 'अंतिम अपडेट: मई 2026',
+    sections: [
+      {
+        title: 'परिचय',
+        text: 'हेल्थसखी (HealthSakhi) में, हम आपकी गोपनीयता का सम्मान करते हैं और आपके व्यक्तिगत डेटा की सुरक्षा के लिए प्रतिबद्ध हैं। यह गोपनीयता नीति आपको सूचित करेगी कि जब आप हमारी वेबसाइट पर आते हैं या हमारे एप्लिकेशन का उपयोग करते हैं तो हम आपके व्यक्तिगत डेटा की देखभाल कैसे करते हैं।'
+      },
+      {
+        title: 'डेटा संग्रह',
+        text: 'डेटा संग्रह हम वह जानकारी एकत्र करते हैं जो आप हमें सीधे प्रदान करते हैं जब आप एक खाता बनाते हैं, हमारे वेलनेस कार्यक्रमों में भाग लेते हैं, या हमसे संपर्क करते हैं। इसमें आपका नाम, ईमेल पता, फोन नंबर और स्वास्थ्य संबंधी प्राथमिकताएं शामिल हो सकती हैं जिन्हें आप साझा करना चुनते हैं।'
+      },
+      {
+        title: 'हम आपके डेटा का उपयोग कैसे करते हैं',
+        text: 'आपके डेटा का उपयोग व्यक्तिगत वेलनेस अंतर्दृष्टि प्रदान करने, आपकी सदस्यता का प्रबंधन करने और हमारी सेवाओं में सुधार करने के लिए किया जाता है। हम आपका व्यक्तिगत डेटा तीसरे पक्ष को नहीं बेचते हैं।'
+      },
+      {
+        title: 'चिकित्सा अस्वीकरण',
+        text: 'हेल्थसखी द्वारा प्रदान की गई जानकारी केवल शैक्षिक और सूचनात्मक उद्देश्यों के लिए है। यह पेशेवर चिकित्सा सलाह, निदान या उपचार का विकल्प नहीं है। किसी चिकित्सीय स्थिति के संबंध में आपके किसी भी प्रश्न के लिए हमेशा अपने चिकित्सक या अन्य योग्य स्वास्थ्य प्रदाता की सलाह लें।',
+        isDisclaimer: true
+      },
+      {
+        title: 'हमसे संपर्क करें',
+        text: 'यदि इस गोपनीयता नीति के बारे में आपके कोई प्रश्न हैं, तो कृपया हमसे hello@healthsakhi.com पर संपर्क करें।'
+      }
+    ]
+  },
+  mr: {
+    back: 'होमवर परत जा',
+    title: 'गोपनीयता धोरण',
+    lastUpdated: 'अंतिम अपडेट: मे २०२६',
+    sections: [
+      {
+        title: 'परिचय',
+        text: 'हेल्थसखी (HealthSakhi) मध्ये, आम्ही तुमच्या गोपनीयतेचा आदर करतो आणि तुमच्या वैयक्तिक डेटाचे संरक्षण करण्यासाठी कटिबद्ध आहोत. जेव्हा तुम्ही आमच्या वेबसाइटला भेट देता किंवा आमच्या ॲप्लिकेशनचा वापर करता तेव्हा आम्ही तुमच्या वैयक्तिक डेटाची काळजी कशी घेतो हे हे गोपनीयता धोरण तुम्हाला सांगेल।'
+      },
+      {
+        title: 'डेटा संग्रह',
+        text: 'जेव्हा तुम्ही खाते तयार करता, आमच्या वेलनेस प्रोग्राममध्ये भाग घेता किंवा आमच्याशी संपर्क साधता तेव्हा तुम्ही आम्हाला थेट प्रदान केलेली माहिती आम्ही गोळा करतो. यामध्ये तुमचे नाव, ईमेल पत्ता, फोन नंबर आणि तुम्ही शेअर करू इच्छित असलेल्या आरोग्याशी संबंधित प्राधान्ये यांचा समावेश असू शकतो।'
+      },
+      {
+        title: 'आम्ही तुमच्या डेटाचा वापर कसा करतो',
+        text: 'तुमच्या डेटाचा वापर वैयक्तिकृत वेलनेस माहिती प्रदान करण्यासाठी, तुमचे सबस्क्रिप्शन व्यवस्थापित करण्यासाठी आणि आमच्या सेवा सुधारण्यासाठी केला जातो. आम्ही तुमचा वैयक्तिक डेटा तिसऱ्या पक्षांना विकत नाही।'
+      },
+      {
+        title: 'वैद्यकीय अस्वीकरण',
+        text: 'हेल्थसखीद्वारे प्रदान केलेली माहिती केवळ शैक्षणिक आणि माहितीच्या उद्देशांसाठी आहे. हे व्यावसायिक वैद्यकीय सल्ला, निदान किंवा उपचारांसाठी पर्याय नाही. वैद्यकीय परिस्थितीबाबत तुम्हाला काही प्रश्न असल्यास नेहमी तुमच्या डॉक्टरांचा किंवा इतर पात्र आरोग्य सेवा पुरवठादाराचा सल्ला घ्या।',
+        isDisclaimer: true
+      },
+      {
+        title: 'आमच्याशी संपर्क साधा',
+        text: 'या गोपनीयता धोरणाबद्दल तुम्हाला काही प्रश्न असल्यास, कृपया आमच्याशी hello@healthsakhi.com वर संपर्क साधा।'
+      }
+    ]
+  }
+};
+
+const PrivacyPolicy = () => {
+  const navigate = useNavigate();
+  const { langCode } = useLanguage();
+
+  const currentLang = langCode === 'hi' || langCode === 'mr' ? langCode : 'en';
+  const T = CONTENT[currentLang];
+
+  return (
+    <div className="min-h-screen bg-[#FFF7F8] py-20 px-6 font-['Poppins']">
+      <div className="max-w-4xl mx-auto">
+        <button 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-[#E91E63] font-black text-xs uppercase tracking-widest mb-12 hover:gap-3 transition-all"
+        >
+          <ChevronLeft size={16} /> {T.back}
+        </button>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/80 backdrop-blur-xl rounded-[3rem] p-8 md:p-16 border border-white shadow-2xl shadow-pink-100/50"
+        >
+          <div className="flex items-center gap-4 mb-10">
+            <div className="w-16 h-16 rounded-2xl bg-[#E91E63]/10 flex items-center justify-center text-[#E91E63]">
+              <Lock size={32} />
+            </div>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-serif font-black text-[#4B1E5A]">{T.title}</h1>
+              <p className="text-[#C69214] font-serif italic text-sm">{T.lastUpdated}</p>
+            </div>
+          </div>
+
+          <div className="space-y-8 text-[#4B1E5A]/80 leading-relaxed font-medium">
+            {T.sections.map((section, idx) => (
+              <section key={idx} className="space-y-4">
+                <h2 className="text-xl font-black text-[#4B1E5A] uppercase tracking-wide flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-[#E91E63]"></div>
+                  {section.title}
+                </h2>
+                {section.isDisclaimer ? (
+                  <p className="italic bg-rose-50 p-6 rounded-2xl border border-pink-100">
+                    {section.text}
+                  </p>
+                ) : (
+                  <p>{section.text}</p>
+                )}
+              </section>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default PrivacyPolicy;

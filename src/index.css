@@ -1,0 +1,249 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+@theme {
+  /* ── Indian Culture Inspired Palette ── */
+  
+  /* Turmeric (Action) */
+  --color-turmeric-amber:   #BA7517;   /* Primary Action / CTA */
+  --color-turmeric-soft:    #FAEEDA;   /* Info boxes / Section fills */
+  --color-turmeric-deep:    #8540FB;   /* Deep text on amber */
+
+  /* Sindoor (Warmth/Health) */
+  --color-sindoor-soft:     #FBEAF0;   /* Cycle/Intimate health UI */
+  --color-sindoor-rose:     #DE3745;   /* Heart icons / Indicators */
+  --color-sindoor-deep:     #993556;   /* Rose background text */
+
+  /* Tulsi (Grounding/Wellness) */
+  --color-tulsi-soft:       #EEF1E5;   /* Wellness / Breathing UI fill */
+  --color-tulsi-teal:       #1975DE;   /* Grounding indicators */
+  --color-tulsi-deep:       #0656FE;   /* Teal background text */
+
+  /* Lotus (Brand/Logo) */
+  --color-lotus-purple:     #DD7F77;   /* Logo / Founder accents */
+  --color-lotus-soft:       #EEEDFE;   /* Sakhi avatar bg / Section fill */
+  --color-lotus-deep:       #5347AB;   /* Links / Purple bg text */
+
+  /* Earth & Surfaces (Backgrounds/Text) */
+  --color-cream-bg:         #FBF7EF;   /* Main page background */
+  --color-cream-deep:       #E9EDFC;   /* Deeper surface contrast */
+  --color-earth-dark:       #3336AA;   /* Headings / Body text */
+  --color-earth-muted:      #6663BA;   /* Secondary text */
+  --color-earth-hint:       #888780;   /* Captions / Timestamps */
+  --color-cream-border:     #E9EDFC;   /* Borders / Dividers */
+  --color-charcoal:         #222CCA;   /* Formal dark surfaces / Circles */
+
+  /* Legacy aliases for compatibility */
+  --color-plum-heavy:       var(--color-charcoal);
+  --color-plum-brand:       var(--color-turmeric-amber);
+  --color-plum-muted:       var(--color-earth-muted);
+  --color-plum-soft:        var(--color-cream-bg);
+  --color-plum-border:      var(--color-cream-border);
+
+  /* Health Palette */
+  --color-health-green:     #6BCB77;
+  --color-health-pink:      #FFB5B5;
+  --color-health-white:     #FFFFFF;
+  --color-health-dark:      #222222;
+  --color-health-gray:      #666666;
+  --color-health-soft:      #F9FBF9;
+
+  /* New Redesign Palette - Exact Match */
+  --color-deep-purple: #4B1E5A;
+  --color-raspberry-pink: #E91E63;
+  --color-gold-text: #C69214;
+  --color-cream-bg: #FFF9F3;
+}
+
+:root {
+  font-family: 'Poppins', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  background-color: var(--color-cream-bg);
+  color: var(--color-deep-purple);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer utilities {
+  .glass-section {
+    @apply backdrop-blur-[24px] bg-white/60 border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.04)];
+    box-shadow: inset 0 0 20px rgba(255,255,255,0.2);
+  }
+  
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/40 border border-white/30 shadow-lg transition-all duration-500;
+  }
+
+  .glow-border {
+    position: relative;
+  }
+  
+  .glow-border::after {
+    content: '';
+    @apply absolute inset-0 rounded-[inherit] border border-white/40 pointer-events-none transition-opacity duration-500;
+    box-shadow: 0 0 15px var(--color-turmeric-amber);
+    opacity: 0;
+  }
+  
+  .glow-border:hover::after {
+    opacity: 0.15;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+  }
+
+  /* 3D Transform Utilities */
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+  .rotate-y-12 {
+    transform: rotateY(12deg);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background-color: #FFF9F3;
+  background-image: url('/Images/WhatsApp Image 2026-05-07 at 2.49.24 PM.jpeg');
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Clear background to ensure maximum vibrancy of the image */
+body::before {
+  display: none;
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-black tracking-tight;
+  }
+}
+
+@layer components {
+  /* ── Premium Buttons ── */
+  .btn-plum {
+    @apply px-8 py-4 bg-plum-heavy text-white rounded-[2rem] font-black text-[12px] 
+           uppercase tracking-[0.2em] transition-all duration-300
+           hover:scale-105 hover:shadow-2xl hover:shadow-plum-heavy/20
+           active:scale-95 flex items-center justify-center gap-3 cursor-pointer;
+  }
+
+  .btn-plum-outline {
+    @apply px-8 py-4 bg-white/50 backdrop-blur-sm border-2 border-plum-border text-plum-heavy rounded-[2rem] 
+           font-black text-[12px] uppercase tracking-[0.2em] transition-all duration-300
+           hover:bg-plum-soft hover:border-plum-brand active:scale-95 
+           flex items-center justify-center gap-3 cursor-pointer;
+  }
+
+  /* ── Glassmorphic Cards ── */
+  .plum-card {
+    @apply bg-white/70 backdrop-blur-md rounded-[3rem] border border-white/40 shadow-xl 
+           transition-all duration-500 hover:shadow-2xl hover:shadow-plum-brand/5;
+  }
+  
+  .glass-section {
+    @apply bg-white/40 backdrop-blur-lg rounded-[40px] border border-white/40 shadow-2xl;
+  }
+
+  /* ── Custom Scrollbar ── */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #C4A0AC transparent;
+  }
+}
+
+/* ── Custom Webkit Scrollbars ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C4A0AC;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9A8A8E;
+}
+
+/* ── Selection ── */
+::selection {
+  background: #ff69b4;
+  color: white;
+}
+
+/* ── Smooth Scrolling ── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Utility Animations ── */
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-flow {
+  background-size: 200% 200%;
+  animation: gradient 15s ease infinite;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  height: 3px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: #ff69b4;
+  border-radius: 10px;
+}
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #ff69b4 transparent;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

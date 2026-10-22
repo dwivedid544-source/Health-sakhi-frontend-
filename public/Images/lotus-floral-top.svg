@@ -1,0 +1,55 @@
+<svg width="1200" height="420" viewBox="0 0 1200 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1200" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD4EC"/>
+      <stop offset="0.33" stop-color="#E6CCFF"/>
+      <stop offset="0.66" stop-color="#CDEBFF"/>
+      <stop offset="1" stop-color="#FFE4B5"/>
+    </linearGradient>
+    <radialGradient id="lotusPink" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 0) rotate(90) scale(100 70)">
+      <stop stop-color="#FF8DCA"/>
+      <stop offset="1" stop-color="#FF8DCA" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="lotusPurple" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 0) rotate(90) scale(100 70)">
+      <stop stop-color="#A988FF"/>
+      <stop offset="1" stop-color="#A988FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="420" fill="url(#bgGrad)" fill-opacity="0.24"/>
+
+  <!-- soft floral splashes -->
+  <circle cx="120" cy="72" r="58" fill="#FF9ED4" fill-opacity="0.28"/>
+  <circle cx="210" cy="44" r="42" fill="#B896FF" fill-opacity="0.24"/>
+  <circle cx="295" cy="86" r="36" fill="#7FD9FF" fill-opacity="0.22"/>
+  <circle cx="1020" cy="60" r="52" fill="#FFA5CA" fill-opacity="0.25"/>
+  <circle cx="1090" cy="98" r="44" fill="#9AB4FF" fill-opacity="0.22"/>
+
+  <!-- lotus left -->
+  <g transform="translate(170 170)">
+    <ellipse cx="0" cy="35" rx="95" ry="16" fill="#FFB6DF" fill-opacity="0.45"/>
+    <ellipse cx="-55" cy="8" rx="34" ry="74" transform="rotate(-38 -55 8)" fill="url(#lotusPurple)"/>
+    <ellipse cx="-23" cy="-6" rx="30" ry="84" transform="rotate(-18 -23 -6)" fill="url(#lotusPink)"/>
+    <ellipse cx="0" cy="-12" rx="30" ry="88" fill="url(#lotusPink)"/>
+    <ellipse cx="23" cy="-6" rx="30" ry="84" transform="rotate(18 23 -6)" fill="url(#lotusPurple)"/>
+    <ellipse cx="55" cy="8" rx="34" ry="74" transform="rotate(38 55 8)" fill="url(#lotusPink)"/>
+    <ellipse cx="0" cy="28" rx="72" ry="18" fill="#FFD7EE" fill-opacity="0.8"/>
+    <ellipse cx="0" cy="28" rx="34" ry="8" fill="#F5A5D4" fill-opacity="0.75"/>
+  </g>
+
+  <!-- lotus right -->
+  <g transform="translate(1030 168)">
+    <ellipse cx="0" cy="35" rx="95" ry="16" fill="#DABEFF" fill-opacity="0.45"/>
+    <ellipse cx="-55" cy="8" rx="34" ry="74" transform="rotate(-38 -55 8)" fill="url(#lotusPink)"/>
+    <ellipse cx="-23" cy="-6" rx="30" ry="84" transform="rotate(-18 -23 -6)" fill="url(#lotusPurple)"/>
+    <ellipse cx="0" cy="-12" rx="30" ry="88" fill="url(#lotusPurple)"/>
+    <ellipse cx="23" cy="-6" rx="30" ry="84" transform="rotate(18 23 -6)" fill="url(#lotusPink)"/>
+    <ellipse cx="55" cy="8" rx="34" ry="74" transform="rotate(38 55 8)" fill="url(#lotusPurple)"/>
+    <ellipse cx="0" cy="28" rx="72" ry="18" fill="#ECD8FF" fill-opacity="0.82"/>
+    <ellipse cx="0" cy="28" rx="34" ry="8" fill="#C29BFF" fill-opacity="0.75"/>
+  </g>
+
+  <!-- vine curves -->
+  <path d="M20 240C120 194 186 270 294 224C384 184 470 250 548 228" stroke="#FF9ACA" stroke-opacity="0.35" stroke-width="5" stroke-linecap="round"/>
+  <path d="M680 228C760 198 846 258 936 220C1034 178 1100 252 1182 210" stroke="#A88EFF" stroke-opacity="0.32" stroke-width="5" stroke-linecap="round"/>
+</svg>
