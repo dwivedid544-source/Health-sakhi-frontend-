@@ -1,1 +1,0 @@
-import"./rolldown-runtime-DAXXjFlN.js";import{Jn as e,Wn as t,ar as n}from"./vendor-core-AXH6pt8Y.js";n();var r=t(),i=()=>(0,r.jsx)(e,{to:`/app/books`,replace:!0});export{i as default};
