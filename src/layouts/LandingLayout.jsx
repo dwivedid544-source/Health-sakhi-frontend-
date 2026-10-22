@@ -96,8 +96,9 @@ const LandingLayout = () => {
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${isScrolled ? 'h-[72px] bg-white/85 backdrop-blur-lg border-b border-pink-100/50 shadow-[0_2px_15px_rgba(233,30,99,0.05)]' : 'h-24 bg-transparent'
           }`}
       >
-        <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between px-3 sm:px-6 lg:px-10">
-          <Link to="/" onClick={(e) => handleNavClick(e, 'home')} className="flex items-center group shrink-0 relative">
+        <div className="w-full max-w-[1440px] mx-auto h-full flex items-center justify-between px-4 sm:px-8 lg:px-12">
+          {/* Logo with clean margin on the right */}
+          <Link to="/" onClick={(e) => handleNavClick(e, 'home')} className="flex items-center group shrink-0 relative mr-4 lg:mr-8 xl:mr-12">
             <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 flex items-center justify-center overflow-hidden transition-all duration-500">
               <img
                 src="/Images/WhatsApp Image 2026-05-04 at 6.32.54 PM.jpeg"
@@ -107,14 +108,14 @@ const LandingLayout = () => {
             </div>
           </Link>
 
-          {/* Navigation Tabs - Centered Horizontally */}
-          <div className="hidden lg:flex items-center gap-10 justify-center">
+          {/* Navigation Tabs - Centered Horizontally with balanced distance */}
+          <div className="hidden lg:flex items-center gap-7 xl:gap-9 justify-center">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={`#${link.id}`}
                 onClick={(e) => handleNavClick(e, link.id)}
-                className="text-base font-bold text-[#4B1E5A] hover:text-[#E91E63] transition-colors relative group py-2 tracking-wide"
+                className="text-base font-bold text-[#4B1E5A] hover:text-[#E91E63] transition-colors relative group py-2 tracking-wide whitespace-nowrap"
               >
                 {link.name}
                 <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#E91E63] transition-all duration-300 origin-left ${activeSection === link.id ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100'}`}></span>
@@ -122,8 +123,8 @@ const LandingLayout = () => {
             ))}
           </div>
 
-          {/* Right Side - Button Right Aligned */}
-          <div className="flex items-center gap-3 sm:gap-6 justify-end">
+          {/* Right Side - Language Toggle & Get Started Button with clear distance from tabs */}
+          <div className="flex items-center gap-4 sm:gap-7 justify-end shrink-0 ml-4 lg:ml-8 xl:ml-12">
             {/* Language Toggle (Visible on both Mobile and Desktop) */}
             <div className="flex items-center bg-rose-50/80 p-0.5 sm:p-1 rounded-full border border-pink-100/50 shadow-sm relative shrink-0">
               <button
@@ -182,7 +183,7 @@ const LandingLayout = () => {
             <Link
               to="/login"
               onClick={() => localStorage.removeItem('hs_member_plan')}
-              className="hidden md:flex items-center justify-center px-7 py-3 rounded-full bg-gradient-to-r from-[#E91E63] to-[#FF5E9B] text-white text-sm font-black uppercase tracking-widest shadow-[0_4px_15px_rgba(233,30,99,0.2)] hover:shadow-[0_6px_20px_rgba(233,30,99,0.3)] hover:scale-105 transition-all duration-300"
+              className="hidden md:flex items-center justify-center px-7 py-3 rounded-full bg-gradient-to-r from-[#E91E63] to-[#FF5E9B] text-white text-sm font-black uppercase tracking-widest shadow-[0_4px_15px_rgba(233,30,99,0.2)] hover:shadow-[0_6px_20px_rgba(233,30,99,0.3)] hover:scale-105 transition-all duration-300 shrink-0"
             >
               {t('landingNav.getStarted')}
             </Link>
@@ -190,7 +191,7 @@ const LandingLayout = () => {
             {/* Mobile/Tablet Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-[#4B1E5A] hover:opacity-70 transition-opacity"
+              className="lg:hidden p-2 text-[#4B1E5A] hover:opacity-70 transition-opacity ml-2"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}

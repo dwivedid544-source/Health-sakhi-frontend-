@@ -959,7 +959,6 @@ const SubscriptionPlansScreen = () => {
                 Choosing ₹999 does not make you a lesser member. Choosing ₹9,999 does not buy you greater dignity. Your financial circumstances are personal. We respect them.
               </p>
             </div>
-            </div>
           </section>
 
           {/* ── INVOICES / BILLING HISTORY ────────────────────────────────── */}
