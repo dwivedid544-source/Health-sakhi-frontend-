@@ -8,7 +8,7 @@ if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(PLAN_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && (parsed.length < 3 || parsed.some(p => p.slug === 'premium-sakhi' && p.features?.some(f => f.includes('FAQ & Help +'))))) {
+      if (Array.isArray(parsed) && parsed.some(p => p.slug === 'basic-sakhi' || p.slug === 'premium-sakhi' || p.price === '499')) {
         localStorage.removeItem(PLAN_STORAGE_KEY);
       }
     }
@@ -19,81 +19,108 @@ if (typeof window !== 'undefined') {
 
 export const defaultPlans = [
   {
-    id: 'PLN-01',
-    name: 'Free Sakhi',
+    id: 'PLN-FREE',
+    name: 'Free 30-Day Trial',
     slug: 'free-sakhi',
     price: '0',
-    duration: 'Free 🌸',
-    interval: 'LIFETIME',
-    status: 'Active',
-    highlightTag: 'FREE 🌸',
-    priceSubtext: 'FREE FOREVER',
-    shortDescription: 'Free — Explore core HealthSakhi features with no cost!',
-    features: [
-      'Books: Access limited to 5 books only (Limit enforced) 📚',
-      'Community Sakhis: Available ✅',
-      'FAQ & Help: Available ✅',
-      'To-Do List: Available ✅',
-      'Home Budget Sakhi: Available ✅',
-      'Mental Health: Available ✅',
-      'Period Tracker: Available ✅',
-      'FAQ & Help: Available ✅',
-      'Ask Health Sakhi: LOCKED 🔒 (Shows lock screen + Upgrade CTA)',
-      'AI Chat Bot: LOCKED 🔒 (Shows lock screen + Upgrade CTA)',
-      'Wellness Certificate: LOCKED 🔒 (Shows blurred lock screen + Upgrade CTA)',
-      'Partner Sakhi: LOCKED 🔒 (Shows lock screen + Upgrade CTA)',
-    ]
-  },
-  {
-    id: 'PLN-02',
-    name: 'Basic Sakhi',
-    slug: 'basic-sakhi',
-    price: '499',
-    originalPrice: '699',
-    duration: '1 Month',
+    originalPrice: '0',
+    duration: '30 Days Free 🌸',
     interval: 'MONTHLY',
     status: 'Active',
-    highlightTag: 'RECOMMENDED ⚡',
-    priceSubtext: '1 MONTH UNLIMITED BOOKS & AI',
-    shortDescription: 'Unlock AI Chat Bot 24/7, All Books Unlimited & Wellness Certificate for 1 month.',
+    highlightTag: '30 DAYS FREE 🌸',
+    priceSubtext: 'THEN YOU DECIDE',
+    shortDescription: 'For the first 30 days, HealthSakhi is completely free. No payment required.',
+    quote: '“Use it first. Feel the value. Then decide what it is worth to you.”',
     features: [
-      'Books: UNLIMITED ALL BOOKS 📚',
-      'Community Sakhis: Available ✅',
-      'Wellness Certificate: UNLOCKED & DOWNLOADABLE 🏆',
-      'FAQ & Help: Available ✅',
-      'AI Chat Bot: UNLOCKED 24/7 🤖',
-      'To-Do List: Available ✅',
-      'Home Budget Sakhi: Available ✅',
-      'Mental Health: Available ✅',
-      'Period Tracker: Available ✅',
-      'Ask Health Sakhi: LOCKED 🔒 (Shows lock screen + Upgrade CTA)',
-      'Partner Sakhi: LOCKED 🔒 (Requires Premium)',
+      'Full Access to HealthSakhi Core ✅',
+      'AI Health Companion 24/7 ✅',
+      'Audio & Multilingual Education Library ✅',
+      'Period & Family Health Trackers ✅',
+      'Sisterhood Circle & Support ✅'
     ]
   },
   {
-    id: 'PLN-03',
-    name: 'Premium Sakhi',
-    slug: 'premium-sakhi',
+    id: 'PLN-ACCESS',
+    name: 'Access',
+    slug: 'access-sakhi',
     price: '999',
-    originalPrice: '1399',
-    duration: '1 Month',
-    interval: 'MONTHLY',
+    originalPrice: '1999',
+    duration: '1 Year',
+    interval: 'YEARLY',
     status: 'Active',
-    highlightTag: 'MOST POPULAR 🔥',
-    priceSubtext: 'ALL FEATURES UNLIMITED ACCESS',
-    shortDescription: 'All features, Partner Sakhi referral earnings & Ask Health Sakhi unlocked!',
+    highlightTag: 'ACCESS',
+    priceSubtext: '₹999 / YEAR',
+    shortDescription: '“HealthSakhi helps me, but I need affordable access.”',
+    quote: '“HealthSakhi helps me, but I need affordable access.”',
     features: [
-      'Books Unlimited ✅',
-      'Community Sakhis ✅',
-      'Wellness Certificate Download ✅',
-      'Partner Sakhi / Referral Earnings UNLOCKED 💰 ✅',
-      'FAQ & Help: Available ✅',
-      'Ask Health Sakhi Direct Support Chat UNLOCKED 💬 ✅',
-      'AI Chat Bot Unlimited ✅',
-      'To-Do List ✅',
-      'Home Budget Sakhi ✅',
-      'Mental Health ✅',
-      'Period Tracker ✅',
+      'Meaningful Core HealthSakhi Experience ✅',
+      'Full Audio & Multilingual Education ✅',
+      'AI Health Companion 24/7 ✅',
+      'Period & Family Wellness Tracker ✅',
+      'Sisterhood Circles & Support ✅'
+    ]
+  },
+  {
+    id: 'PLN-FAIR-VALUE',
+    name: 'Fair Value',
+    slug: 'fair-value-sakhi',
+    price: '2999',
+    originalPrice: '3999',
+    duration: '1 Year',
+    interval: 'YEARLY',
+    status: 'Active',
+    highlightTag: 'FAIR VALUE ⭐',
+    priceSubtext: '₹2,999 / YEAR',
+    shortDescription: '“I received real value and this feels like a fair contribution.”',
+    quote: '“I received real value and this feels like a fair contribution.”',
+    features: [
+      'Complete Core HealthSakhi Experience ✅',
+      'Full Audio & Multilingual Education ✅',
+      'AI Health Companion 24/7 ✅',
+      'Wellness Certificate of Completion 🏆',
+      'Special Educational Sessions 🌸'
+    ]
+  },
+  {
+    id: 'PLN-SUPPORTER',
+    name: 'Supporter',
+    slug: 'supporter-sakhi',
+    price: '4999',
+    originalPrice: '6999',
+    duration: '1 Year',
+    interval: 'YEARLY',
+    status: 'Active',
+    highlightTag: 'SUPPORTER',
+    priceSubtext: '₹4,999 / YEAR',
+    shortDescription: '“I value HealthSakhi and want to support its growth.”',
+    quote: '“I value HealthSakhi and want to support its growth.”',
+    features: [
+      'Complete Core HealthSakhi Experience ✅',
+      'Advanced Learning Resources 📚',
+      'Early Access to Selected Features ⚡',
+      'Wellness Certificate & Priority AI 🌟',
+      'Direct Support Sisterhood Circle 💬'
+    ]
+  },
+  {
+    id: 'PLN-PATRON',
+    name: 'Patron / Pay It Forward',
+    slug: 'patron-sakhi',
+    price: '9999',
+    originalPrice: '14999',
+    duration: '1 Year',
+    interval: 'YEARLY',
+    status: 'Active',
+    highlightTag: 'PAY IT FORWARD ❤️',
+    priceSubtext: '₹9,999 / YEAR',
+    shortDescription: '“I can contribute more and help HealthSakhi reach women who may not be able to.”',
+    quote: '“I can contribute more and help HealthSakhi reach women who may not be able to.”',
+    features: [
+      'Complete Core HealthSakhi Experience ✅',
+      'Help Keep HealthSakhi Accessible to Another Woman ❤️',
+      'Participate in HealthSakhi Initiatives 🤝',
+      'Advanced Resources & Early Access ⚡',
+      'Special Educational Sessions & Direct Support 🌸'
     ]
   }
 ];

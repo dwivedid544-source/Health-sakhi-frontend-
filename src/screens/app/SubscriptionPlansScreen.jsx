@@ -16,15 +16,27 @@ const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_HEALTH
 const PLAN_TRANSLATIONS = {
   hi: {
     'Free Sakhi': 'निःशुल्क सखी',
+    'Free 30-Day Trial': '30-दिवसीय निःशुल्क ट्रायल',
+    'Access': 'एक्सेस (पहुंच)',
+    'Fair Value': 'फेयर वैल्यू ⭐',
+    'Supporter': 'सपोर्टर (सहयोगी)',
+    'Patron / Pay It Forward': 'पेट्रॉन / पे इट फॉरवर्ड ❤️',
+    'Annual Contribution': 'वार्षिक योगदान',
     'Basic Sakhi': 'बेसिक सखी',
     'Premium Sakhi': 'प्रीमियम सखी',
     'FREE 🌸': 'मुफ़्त 🌸',
     'RECOMMENDED ⚡': 'अनुशंसित ⚡',
     'MOST POPULAR 🔥': 'सबसे लोकप्रिय 🔥',
     'Free 🌸': 'मुफ़्त 🌸',
+    '1 Year': '1 वर्ष',
     '1 Month': '1 महीना',
     '1 Month Subscription': '1 महीने की सदस्यता',
     'FREE FOREVER': 'हमेशा के लिए मुफ़्त',
+    '“HealthSakhi helps me, but I need affordable access.”': '“हेल्थसखी मेरी मदद करती है, लेकिन मुझे किफायती पहुंच चाहिए।”',
+    '“I received real value and this feels like a fair contribution.”': '“मुझे वास्तविक मूल्य मिला और यह एक उचित योगदान लगता है।”',
+    '“I value HealthSakhi and want to support its growth.”': '“मैं हेल्थसखी को महत्व देती हूं और इसके विकास का समर्थन करना चाहती हूं।”',
+    '“I can contribute more and help HealthSakhi reach women who may not be able to.”': '“मैं अधिक योगदान दे सकती हूं ताकि हेल्थसखी उन महिलाओं तक पहुंच सके जो ऐसा नहीं कर सकतीं।”',
+    '“Use it first. Feel the value. Then decide what it is worth to you.”': '“पहले इसका उपयोग करें। मूल्य महसूस करें। फिर तय करें कि यह आपके लिए कितना महत्वपूर्ण है।”',
     '1 MONTH UNLIMITED BOOKS & AI': '1 महीना असीमित पुस्तकें और एआई',
     'ALL FEATURES UNLIMITED ACCESS': 'सभी फीचर्स तक असीमित पहुंच',
     'Free — Explore core HealthSakhi features with no cost!': 'मुफ़्त — बिना किसी शुल्क के मुख्य हेल्थसखी सुविधाओं का पता लगाएं!',
@@ -434,20 +446,32 @@ const SubscriptionPlansScreen = () => {
 
   const getDiscount = () => couponResult ? couponResult.discountAmount : 0;
 
+  const TIER_QUOTES = {
+    'access-sakhi': '“HealthSakhi helps me, but I need affordable access.”',
+    'fair-value-sakhi': '“I received real value and this feels like a fair contribution.”',
+    'supporter-sakhi': '“I value HealthSakhi and want to support its growth.”',
+    'patron-sakhi': '“I can contribute more and help HealthSakhi reach women who may not be able to.”',
+    'free-sakhi': '“Use it first. Feel the value. Then decide what it is worth to you.”'
+  };
+
   // Plan icon mapping
   const planIcon = (slug) => {
     if (slug?.includes('free')) return <Heart size={24} className="text-emerald-500" />;
+    if (slug?.includes('access')) return <Shield size={24} className="text-emerald-600" />;
+    if (slug?.includes('fair-value')) return <Star size={24} className="text-rose-500 fill-rose-500" />;
+    if (slug?.includes('supporter')) return <Zap size={24} className="text-purple-600" />;
+    if (slug?.includes('patron')) return <Heart size={24} className="text-amber-500 fill-amber-500" />;
     if (slug?.includes('premium')) return <Crown size={24} className="text-amber-500" />;
-    if (slug?.includes('basic')) return <Zap size={24} className="text-[#ff69b4]" />;
     return <Users size={24} className="text-purple-500" />;
   };
 
   const planGradient = (slug, isActive) => {
     if (isActive) return 'from-[#1A0B13] to-[#2E1220]';
-    if (slug?.includes('premium')) return 'from-amber-50 to-orange-50';
-    if (slug?.includes('basic')) return 'from-rose-50 to-pink-50';
-    if (slug?.includes('family') || slug?.includes('elite')) return 'from-purple-50 to-indigo-50';
-    return 'from-emerald-50 to-teal-50';
+    if (slug?.includes('patron')) return 'from-amber-50 to-orange-50';
+    if (slug?.includes('supporter')) return 'from-purple-50 to-pink-50';
+    if (slug?.includes('fair-value')) return 'from-rose-50 to-pink-50';
+    if (slug?.includes('access')) return 'from-emerald-50 to-teal-50';
+    return 'from-slate-50 to-pink-50';
   };
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -709,6 +733,31 @@ const SubscriptionPlansScreen = () => {
           {/* ── CURRENT SUBSCRIPTION ─────────────────────────────────────── */}
           {subscription && (
             <section className="bg-white rounded-[2.5rem] border border-[#F5E6EA] p-8 shadow-sm">
+              {/* 30-Day Free Trial Notice Banner */}
+              {subscription.plan.slug === 'free-sakhi' && (
+                <div className="mb-6 p-5 rounded-3xl bg-gradient-to-r from-rose-50 via-pink-50 to-purple-50 border border-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-[#E91E63] text-white flex items-center justify-center text-xl shadow-md shadow-pink-200">
+                      🌸
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#E91E63] block">
+                        Humanity Pricing Trial
+                      </span>
+                      <h3 className="text-base font-black text-[#4B1E5A]">
+                        30-Day Free Trial Active
+                      </h3>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        {Math.max(0, Math.ceil((new Date(subscription.endsAt) - new Date()) / (1000 * 60 * 60 * 24)))} days remaining · Explore all core features freely.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-xs font-bold text-[#E91E63] bg-white px-4 py-2 rounded-full border border-rose-200 shadow-sm">
+                    Then you decide what it's worth to you
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ff69b4] to-[#ff1493] flex items-center justify-center text-white">
@@ -727,7 +776,7 @@ const SubscriptionPlansScreen = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {[
                   { label: 'Plan', value: subscription.plan.name, icon: Shield },
-                  { label: 'Price', value: `₹${subscription.plan.price}/${subscription.plan.interval === 'YEARLY' ? 'yr' : 'mo'}`, icon: CreditCard },
+                  { label: 'Price', value: subscription.plan.price === 0 ? 'Free (30 Days)' : `₹${subscription.plan.price}/${subscription.plan.interval === 'YEARLY' ? 'year' : 'month'}`, icon: CreditCard },
                   { label: 'Started', value: new Date(subscription.startsAt).toLocaleDateString(), icon: Calendar },
                   { label: 'Expires', value: new Date(subscription.endsAt).toLocaleDateString(), icon: Clock }
                 ].map((item, i) => (
@@ -744,7 +793,7 @@ const SubscriptionPlansScreen = () => {
                   <>
                     <button onClick={handleRenew}
                       className="flex-1 py-3 bg-[#ff69b4] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-md flex items-center justify-center gap-2">
-                      <RefreshCw size={14} /> Renew Subscription
+                      <RefreshCw size={14} /> Renew Contribution
                     </button>
                     <button onClick={handleCancel}
                       className="px-6 py-3 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100">
@@ -756,79 +805,112 @@ const SubscriptionPlansScreen = () => {
             </section>
           )}
 
+          {/* ── HUMANITY PRICING PHILOSOPHY ──────────────────────────────── */}
+          <div className="p-6 md:p-8 rounded-[2.5rem] bg-gradient-to-r from-rose-50/90 via-pink-50/60 to-purple-50/90 border border-rose-200/80 shadow-sm text-center">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-100 text-[#E91E63] text-[10px] font-black uppercase tracking-widest mb-3">
+              <Heart size={12} className="fill-current text-[#E91E63]" /> HealthSakhi Humanity Pricing
+            </span>
+            <h2 className="text-2xl md:text-3xl font-black text-[#4B1E5A] tracking-tight">
+              Choose what feels right
+            </h2>
+            <p className="text-xs md:text-sm text-slate-600 max-w-2xl mx-auto mt-2 leading-relaxed">
+              Same meaningful core HealthSakhi experience. Different contributions according to your circumstances and the value you feel you received.
+            </p>
+          </div>
+
           {/* ── PLAN CARDS ───────────────────────────────────────────────── */}
           <section className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black tracking-tight text-[#15192c]">
-                {subscription ? t('plans.upgradePlan', 'Upgrade / Change Plan') : t('plans.choosePlan', 'Choose Your Plan')}
+              <h2 className="text-xl font-black tracking-tight text-[#15192c]">
+                Annual Contributions
               </h2>
               <span className="px-3 py-1 bg-rose-50 text-[#ff69b4] rounded-full text-[9px] font-black uppercase tracking-widest border border-rose-100">
-                {plans.length} {t('plans.plansAvailable', 'Plans Available')}
+                {plans.filter(p => p.slug !== 'free-sakhi').length || plans.length} {t('plans.plansAvailable', 'Options Available')}
               </span>
             </div>
 
-            <div className={`grid grid-cols-1 ${plans.length >= 3 ? 'lg:grid-cols-3' : plans.length === 2 ? 'lg:grid-cols-2' : 'max-w-md mx-auto'} gap-8`}>
-              {plans.map((plan) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {plans.filter(p => p.slug !== 'free-sakhi').map((plan) => {
                 const isActive = subscription?.plan?.slug === plan.slug;
-                const isPremium = plan.slug?.includes('premium');
+                const isFairValue = plan.slug?.includes('fair-value');
+                const isPatron = plan.slug?.includes('patron');
+                const quote = TIER_QUOTES[plan.slug] || plan.shortDescription;
 
                 return (
                   <motion.div key={plan.id} whileHover={{ y: -6 }}
-                    className={`relative rounded-[2.5rem] p-8 border flex flex-col justify-between transition-all duration-300 overflow-hidden ${
+                    className={`relative rounded-[2.5rem] p-6 border flex flex-col justify-between transition-all duration-300 overflow-hidden ${
                       isActive
                         ? 'bg-gradient-to-br from-[#1A0B13] to-[#2E1220] text-white border-[#1A0B13] shadow-2xl shadow-pink-950/20'
-                        : isPremium
-                        ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200/50 shadow-lg hover:shadow-xl'
+                        : isFairValue
+                        ? 'bg-gradient-to-br from-rose-50/80 to-pink-50/80 border-rose-300 shadow-lg ring-2 ring-rose-300/40'
+                        : isPatron
+                        ? 'bg-gradient-to-br from-amber-50/70 to-orange-50/70 border-amber-300 shadow-md'
                         : 'bg-white border-[#F5E6EA] shadow-sm hover:shadow-lg'
                     }`}>
-                    {/* Glow effect for premium */}
-                    {isPremium && !isActive && (
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/30 rounded-full blur-3xl -mr-12 -mt-12" />
+                    
+                    {/* Badge tag */}
+                    {isFairValue && !isActive && (
+                      <span className="absolute top-3 right-4 px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-full bg-rose-600 text-white shadow-sm">
+                        Fair Value ⭐
+                      </span>
                     )}
 
-                    {/* Popular tag */}
-                    {isPremium && (
-                      <span className={`absolute -top-0 left-1/2 -translate-x-1/2 translate-y-4 px-4 py-1.5 text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg ${
-                        isActive ? 'bg-pink-500 text-white' : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
-                      }`}>
-                        {t('plans.mostPopular', 'Most Popular 🔥')}
+                    {isPatron && !isActive && (
+                      <span className="absolute top-3 right-4 px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-full bg-amber-600 text-white shadow-sm">
+                        Pay It Forward ❤️
                       </span>
                     )}
 
                     <div className="relative z-10">
                       {/* Icon + Name */}
-                      <div className="flex items-center gap-3 mb-4 mt-4">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                          isActive ? 'bg-white/10' : isPremium ? 'bg-amber-100' : 'bg-emerald-50'
+                      <div className="flex items-center gap-3 mb-3 mt-1">
+                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${
+                          isActive ? 'bg-white/10' : 'bg-rose-50'
                         }`}>
                           {planIcon(plan.slug)}
                         </div>
                         <div>
-                          <h3 className="text-lg font-black">{plan.name}</h3>
-                          <p className={`text-[9px] font-extrabold uppercase tracking-widest ${
+                          <h3 className="text-base font-black leading-tight">{plan.name}</h3>
+                          <p className={`text-[8px] font-extrabold uppercase tracking-widest mt-0.5 ${
                             isActive ? 'text-pink-300' : 'text-[#ff69b4]'
-                          }`}>{plan.interval} Plan</p>
+                          }`}>Annual Contribution</p>
                         </div>
                       </div>
 
                       {/* Price */}
-                      <div className="mb-6">
+                      <div className="mb-3">
                         <div className="flex items-baseline gap-1">
-                          <span className={`text-4xl font-black ${isActive ? 'text-white' : 'text-[#15192c]'}`}>
-                            {plan.price === 0 ? 'Free' : `₹${plan.price}`}
+                          <span className={`text-3xl font-black ${isActive ? 'text-white' : 'text-[#15192c]'}`}>
+                            ₹{Number(plan.price).toLocaleString()}
                           </span>
-                          {plan.price > 0 && (
-                            <span className={`text-[11px] font-bold ${isActive ? 'text-white/60' : 'text-[#C4A0AC]'}`}>
-                              /{plan.interval === 'YEARLY' ? 'year' : 'month'}
-                            </span>
-                          )}
+                          <span className={`text-[10px] font-bold ${isActive ? 'text-white/60' : 'text-[#C4A0AC]'}`}>
+                            /year
+                          </span>
                         </div>
                       </div>
 
-                      <div className={`h-px w-full mb-5 ${isActive ? 'bg-white/10' : 'bg-rose-100'}`} />
+                      {/* What your choice says */}
+                      {quote && (
+                        <div className={`my-3 p-3 rounded-2xl text-center border ${
+                          isActive ? 'bg-white/10 border-white/15' : 'bg-rose-50/70 border-rose-100'
+                        }`}>
+                          <p className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${
+                            isActive ? 'text-pink-300' : 'text-rose-500'
+                          }`}>
+                            What your choice says
+                          </p>
+                          <p className={`text-[11px] font-semibold italic leading-snug ${
+                            isActive ? 'text-white/90' : 'text-[#4B1E5A]'
+                          }`}>
+                            {quote}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className={`h-px w-full mb-3 ${isActive ? 'bg-white/10' : 'bg-rose-100'}`} />
 
                       {/* Features */}
-                      <div className="space-y-3 mb-7">
+                      <div className="space-y-2 mb-6">
                         {[...(plan.features || [])].sort((a, b) => {
                           const nameA = typeof a === 'string' ? a : (a.name || a.featureName || '');
                           const nameB = typeof b === 'string' ? b : (b.name || b.featureName || '');
@@ -837,11 +919,11 @@ const SubscriptionPlansScreen = () => {
                           return idxA - idxB;
                         }).filter(f => {
                           const n = (typeof f === 'string' ? f : (f.name || f.featureName || '')).toLowerCase();
-                          return n !== 'duration' && n !== 'short description' && n !== 'highlight tag' && n !== 'price subtext';
+                          return n !== 'duration' && n !== 'short description' && n !== 'highlight tag' && n !== 'price subtext' && n !== 'quote';
                         }).map((f, i) => (
-                          <div key={i} className={`flex items-center gap-2.5 text-xs font-bold ${isActive ? 'text-white/85' : 'text-[#6B5E63]'}`}>
-                            <Check size={12} className={isActive ? 'text-pink-300' : 'text-[#D17B88]'} />
-                            {typeof f === 'string' ? f : (f.value || f.featureValue || f.name || '')}
+                          <div key={i} className={`flex items-start gap-2 text-[11px] font-semibold ${isActive ? 'text-white/85' : 'text-[#6B5E63]'}`}>
+                            <Check size={12} className={`mt-0.5 shrink-0 ${isActive ? 'text-pink-300' : 'text-emerald-500'}`} />
+                            <span className="leading-tight">{typeof f === 'string' ? f : (f.value || f.featureValue || f.name || '')}</span>
                           </div>
                         ))}
                       </div>
@@ -851,19 +933,32 @@ const SubscriptionPlansScreen = () => {
                     <button
                       onClick={() => isActive ? null : handleProceedToCheckout(plan)}
                       disabled={isActive}
-                      className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 ${
+                      className={`w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 cursor-pointer ${
                         isActive
                           ? 'bg-white/20 text-white/60 cursor-default'
-                          : isPremium
-                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:brightness-110 shadow-md shadow-amber-200/50'
+                          : isFairValue
+                          ? 'bg-gradient-to-r from-rose-600 to-pink-600 text-white hover:brightness-110 shadow-md shadow-rose-200'
+                          : isPatron
+                          ? 'bg-gradient-to-r from-amber-600 to-rose-600 text-white hover:brightness-110 shadow-md shadow-amber-200'
                           : 'bg-[#ff69b4] text-white hover:brightness-110 shadow-md shadow-pink-200'
                       }`}
                     >
-                      {isActive ? '✓ Current Plan' : plan.price === 0 ? 'Activate Free Plan' : 'Subscribe Now'}
+                      {isActive ? '✓ Current Contribution' : `Contribute ₹${Number(plan.price).toLocaleString()}`}
                     </button>
                   </motion.div>
                 );
               })}
+            </div>
+
+            {/* Dignity and Respect Manifesto Banner */}
+            <div className="mt-8 p-6 rounded-3xl bg-white border border-rose-200 shadow-sm text-center">
+              <h4 className="text-base font-black text-[#4B1E5A] mb-1">
+                One woman should never feel “less” because she pays less.
+              </h4>
+              <p className="text-xs text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                Choosing ₹999 does not make you a lesser member. Choosing ₹9,999 does not buy you greater dignity. Your financial circumstances are personal. We respect them.
+              </p>
+            </div>
             </div>
           </section>
 
