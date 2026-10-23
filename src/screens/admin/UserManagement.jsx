@@ -77,6 +77,7 @@ const Modal = ({ open, onClose, title, subtitle, icon: Icon, iconBg, maxWidth = 
 // ── EDIT MODAL ─────────────────────────────────────────────────────────────────
 const EditModal = ({ user, onClose, onSave, availablePlans }) => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', plan: 'Free Sakhi', planSlug: 'free-sakhi', status: 'Active' });
+  const [planChanged, setPlanChanged] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { 
@@ -91,12 +92,14 @@ const EditModal = ({ user, onClose, onSave, availablePlans }) => {
         plan: found ? found.name : userActivePlan,
         planSlug: found ? found.slug : '', 
         status: currentStatus
-      }); 
+      });
+      setPlanChanged(false);
     } 
   }, [user, availablePlans]);
 
   const handlePlanChange = (planName) => {
-    const found = (availablePlans || []).find(p => p.name === planName);
+    const found = (availablePlans || []).find(p => p.name.toLowerCase() === planName.toLowerCase() || p.slug === planName);
+    setPlanChanged(true);
     setForm(prev => ({ ...prev, plan: planName, planSlug: found ? found.slug : '' }));
   };
 
@@ -105,25 +108,26 @@ const EditModal = ({ user, onClose, onSave, availablePlans }) => {
     setLoading(true);
     try {
       const payload = {
-        fullName: form.name,
-        phone: form.phone,
+        fullName: form.name.trim(),
+        phone: form.phone ? form.phone.trim() : '',
         status: form.status,
       };
-      // Only include planSlug if admin actually changed the plan
-      if (form.planSlug) {
-        payload.planSlug = form.planSlug;
+      // Only include planSlug if admin actually changed or selected a valid plan
+      if (planChanged && form.planSlug && form.planSlug.trim()) {
+        payload.planSlug = form.planSlug.trim();
       }
       await onSave(payload);
       onClose();
     } catch (err) {
-      alert("Failed to update user profile: " + (err.response?.data?.error || err.message));
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message;
+      alert("Failed to update user profile: " + msg);
     } finally {
       setLoading(false);
     }
   };
 
   const planNames = availablePlans && availablePlans.length > 0
-    ? availablePlans.map(p => p.name)
+    ? [...new Set(availablePlans.map(p => p.name))]
     : ['Free Sakhi', 'Basic Sakhi', 'Premium Sakhi'];
 
   return (
@@ -198,9 +202,9 @@ const AddMemberModal = ({ open, onClose, onAdd, availablePlans }) => {
     setLoading(true);
     try {
       await onAdd({
-        fullName: form.name,
-        email: form.email,
-        phone: form.phone,
+        fullName: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone ? form.phone.trim() : '',
         password: form.password,
         planSlug: form.planSlug || 'free-sakhi'
       });
@@ -214,7 +218,8 @@ const AddMemberModal = ({ open, onClose, onAdd, availablePlans }) => {
       });
       onClose();
     } catch (err) {
-      alert("Failed to add member: " + (err.response?.data?.error || err.message));
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message;
+      alert("Failed to add member: " + msg);
     } finally {
       setLoading(false);
     }

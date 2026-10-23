@@ -27,8 +27,8 @@ const ROLE_CONFIG = {
       { name: 'Community Sakhis', icon: Users, path: '/app/community', i18nKey: 'nav.community' },
       { name: 'Wellness Certificate', icon: Award, path: '/app/wellness-certificate', i18nKey: 'nav.wellnessCertificate' },
       { name: 'Partner Sakhi', icon: Share2, path: '/app/partner-sakhi', i18nKey: 'nav.partnerSakhi' },
-      { name: 'Ask Health Sakhi', icon: HelpCircle, path: '/app/ask-health-sakhi', i18nKey: 'nav.askHealthSakhi' },
-      { name: 'FAQ & Help', icon: InfoIcon, path: '/app/faq', i18nKey: 'nav.faq' },
+      { name: 'Ask Health Sakhi', icon: MessageSquare, path: '/app/ask-health-sakhi', i18nKey: 'nav.askHealthSakhi' },
+      { name: 'FAQ & Help', icon: HelpCircle, path: '/app/faq', i18nKey: 'nav.faq' },
     ],
     subNavItems: [
       { name: 'Sakhi Diary', icon: BookOpen, path: '/app/diary', i18nKey: 'nav.sakhiDiary' },
@@ -386,16 +386,16 @@ const MemberNavbar = ({ config, isActive }) => {
         }
       `}</style>
       <nav className="h-20 bg-white/80 backdrop-blur-md border-b w-full relative z-[100]" style={{ borderColor: '#F5E6EA' }}>
-        <div className="w-full h-full flex items-center justify-between px-4 md:px-10">
-          <Link to={config.basePath} className="flex items-center gap-2 xl:gap-3 shrink-0">
-            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-sm bg-white border border-rose-100 shrink-0">
+        <div className="w-full h-full flex items-center justify-between px-3 sm:px-4 lg:px-5 xl:px-8">
+          <Link to={config.basePath} className="flex items-center gap-2 xl:gap-2.5 shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-xs bg-white border border-rose-100 shrink-0">
               <img src="/Images/logo.png" alt="HealthSakhi Logo" className="w-full h-full object-contain" />
             </div>
-            <span className="font-bold text-lg hidden min-[1400px]:block" style={{ color: '#15192c' }}>HealthSakhi</span>
+            <span className="font-bold text-base xl:text-lg hidden min-[1480px]:block" style={{ color: '#15192c' }}>HealthSakhi</span>
           </Link>
 
-          <div className="hidden lg:flex items-center justify-center flex-1 mx-2 xl:mx-4 overflow-x-auto no-scrollbar">
-            <div className="flex items-center justify-center gap-0.5 min-[1300px]:gap-1 min-[1380px]:gap-1.5 min-w-max py-1">
+          <div className="hidden lg:flex items-center justify-center flex-1 mx-1 lg:mx-2 xl:mx-3 overflow-x-auto no-scrollbar">
+            <div className="flex items-center justify-center gap-1 min-[1250px]:gap-1.5 min-[1440px]:gap-2 min-w-max py-1 px-1">
               {visibleNavItems.map((item) => {
                 if (item.isDropdown) {
                   const isDropdownActive = showWellnessDropdown || item.items.some(sub => isActive(sub.path));
@@ -404,16 +404,21 @@ const MemberNavbar = ({ config, isActive }) => {
                       <button
                         type="button"
                         onClick={() => setShowWellnessDropdown(!showWellnessDropdown)}
-                        className={`flex items-center gap-1 px-1.5 min-[1300px]:px-2 min-[1380px]:px-2.5 py-1 md:py-1.5 rounded-xl text-[10.5px] min-[1300px]:text-[11.5px] min-[1380px]:text-[12px] font-bold transition-all duration-300 relative whitespace-nowrap shrink-0 hover:scale-105 hover:-translate-y-0.5 hover:bg-pink-50/60 hover:shadow-md hover:shadow-pink-100/50 shiny-btn ${
-                          isDropdownActive ? 'text-[#ff69b4] bg-pink-50/40 shadow-sm shadow-pink-50/30' : 'text-[#9A8A8E] hover:text-[#ff69b4]'
+                        className={`flex items-center gap-1.5 px-2 min-[1250px]:px-2.5 min-[1440px]:px-3 py-1.5 rounded-xl text-[11px] min-[1350px]:text-[11.5px] min-[1480px]:text-[12px] font-bold transition-all duration-200 relative whitespace-nowrap shrink-0 hover:bg-pink-50/70 hover:text-[#E91E63] ${
+                          isDropdownActive
+                            ? 'text-[#E91E63] bg-pink-50/90 border border-pink-200/90 shadow-xs'
+                            : 'text-[#4A3B43] border border-transparent'
                         }`}
                       >
-                        {item.icon && <item.icon size={13} className={`shrink-0 ${isDropdownActive ? 'text-[#ff69b4]' : 'text-[#9A8A8E]/80'}`} />}
-                        <span>{t(item.i18nKey, item.name)}</span>
-                        <ChevronDown size={12} className={`transition-transform ${showWellnessDropdown ? 'rotate-180' : ''}`} />
-                        {item.items.some(sub => isActive(sub.path)) && (
-                          <div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#ff69b4]" />
+                        {item.icon && (
+                          <item.icon
+                            size={15}
+                            strokeWidth={isDropdownActive ? 2.3 : 1.9}
+                            className={`shrink-0 transition-colors ${isDropdownActive ? 'text-[#E91E63]' : 'text-[#7A6872]'}`}
+                          />
                         )}
+                        <span>{t(item.i18nKey, item.name)}</span>
+                        <ChevronDown size={13} className={`transition-transform duration-200 ${showWellnessDropdown ? 'rotate-180' : ''}`} />
                       </button>
 
                       <AnimatePresence>
@@ -434,7 +439,7 @@ const MemberNavbar = ({ config, isActive }) => {
                                     setShowWellnessDropdown(false);
                                   }}
                                   className={`flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-[12px] xl:text-[13px] font-bold transition-all duration-200 hover:bg-rose-50 text-left hover:scale-[1.02] ${
-                                    isSubActive ? 'text-[#ff69b4]' : 'text-[#9A8A8E] hover:text-[#ff69b4]'
+                                    isSubActive ? 'text-[#E91E63]' : 'text-[#7A6872] hover:text-[#E91E63]'
                                   }`}
                                 >
                                   <sub.icon size={16} />
@@ -456,25 +461,32 @@ const MemberNavbar = ({ config, isActive }) => {
                     key={item.path}
                     type="button"
                     onClick={() => navigate(item.path)}
-                    className={`flex items-center gap-1 px-1.5 min-[1300px]:px-2 min-[1380px]:px-2.5 py-1 md:py-1.5 rounded-xl text-[10.5px] min-[1300px]:text-[11.5px] min-[1380px]:text-[12px] font-extrabold transition-all duration-300 relative whitespace-nowrap shrink-0 hover:scale-105 hover:-translate-y-0.5 hover:bg-pink-50/60 hover:shadow-md hover:shadow-pink-100/50 shiny-btn ${
-                      isItemActive ? 'text-[#ff69b4] bg-pink-50/40 shadow-sm shadow-pink-50/30' : 'text-[#5C4A52] hover:text-[#ff69b4]'
+                    className={`flex items-center gap-1.5 px-2 min-[1250px]:px-2.5 min-[1440px]:px-3 py-1.5 rounded-xl text-[11px] min-[1350px]:text-[11.5px] min-[1480px]:text-[12px] font-bold transition-all duration-200 relative whitespace-nowrap shrink-0 hover:bg-pink-50/70 hover:text-[#E91E63] ${
+                      isItemActive
+                        ? 'text-[#E91E63] bg-pink-50/90 border border-pink-200/90 shadow-xs'
+                        : 'text-[#4A3B43] border border-transparent'
                     }`}
                   >
-                    {Icon && <Icon size={13} className={`shrink-0 ${isItemActive ? 'text-[#ff69b4]' : 'text-[#9A8A8E]'}`} />}
-                    <span>{navLabel(item)}</span>
-                    {isItemActive && <div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#ff69b4]" />}
+                    {Icon && (
+                      <Icon
+                        size={15}
+                        strokeWidth={isItemActive ? 2.3 : 1.9}
+                        className={`shrink-0 transition-colors ${isItemActive ? 'text-[#E91E63]' : 'text-[#7A6872]'}`}
+                      />
+                    )}
+                    <span className="tracking-tight">{navLabel(item)}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 xl:gap-2.5 shrink-0">
             {/* Single Unified Compact Milestone Pill */}
             {config.basePath === '/app' && (
               <Link 
                 to="/app/rewards" 
-                className="flex items-center gap-2 px-3 py-1.5 bg-white border border-rose-200 hover:border-[#ff69b4] rounded-full shadow-xs hover:shadow-sm transition-all cursor-pointer select-none shrink-0"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-white border border-rose-200 hover:border-[#ff69b4] rounded-full shadow-xs hover:shadow-sm transition-all cursor-pointer select-none shrink-0"
                 title="View Milestone Rewards"
               >
                 <div className="flex items-center gap-1 font-black text-slate-800 text-[11px] sm:text-xs">
@@ -496,7 +508,7 @@ const MemberNavbar = ({ config, isActive }) => {
               <button
                 type="button"
                 onClick={() => setShowLangDropdown(!showLangDropdown)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50/80 border border-pink-100/50 text-[#4B1E5A] hover:text-[#ff69b4] text-[11px] font-black transition-all shadow-sm cursor-pointer select-none"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-50/80 border border-pink-100/50 text-[#4B1E5A] hover:text-[#ff69b4] text-[11px] font-black transition-all shadow-sm cursor-pointer select-none"
               >
                 <span>🌐</span>
                 <span className="uppercase">{langCode === 'en' ? 'EN' : langCode === 'hi' ? 'HI' : 'MR'}</span>
