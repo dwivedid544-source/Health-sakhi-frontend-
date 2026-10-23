@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CreditCard, DollarSign, PieChart, ArrowDownRight, ArrowUpRight, Plus, ShoppingCart, Home, Zap, ShieldCheck, ArrowRight, X, Sparkles, Wallet, Calendar, Trash2, Pencil } from 'lucide-react';
+import { CreditCard, DollarSign, PieChart, ArrowDownRight, ArrowUpRight, Plus, ShoppingCart, Home, Zap, ShieldCheck, ArrowRight, X, Sparkles, Wallet, Calendar, Trash2, Pencil, Download, CheckCircle2, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import memberApi from '../../api/memberApi';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -64,7 +64,7 @@ const FinanceScreen = () => {
    const [isCategorySelectedForCurrentEntry, setIsCategorySelectedForCurrentEntry] = useState(false);
    const inputRef = React.useRef(null);
 
-   const budgetLimit = 40000;
+   const defaultBudgetLimit = 40000;
 
    const budgetTips = [
       { id: 1, title: t('finance.tips.tip1.title', "The 50/30/20 Strategy"), desc: t('finance.tips.tip1.desc', "For a balanced life, sweetie, use 50% of income for needs (rent, bills), 30% for wants (dining, fun), and save 20% immediately for your bright future! 🌸"), icon: PieChart, color: '#FDEEF1', text: '#D17B88' },
@@ -136,26 +136,62 @@ const FinanceScreen = () => {
       const expenses = transactions.filter(t => t.type === 'expense');
       const totalExpenses = expenses.reduce((acc, t) => acc + t.amount, 0);
       const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
-      const spentPercentage = Math.min(100, Math.round((totalExpenses / budgetLimit) * 100));
-      const remaining = Math.max(0, budgetLimit - totalExpenses);
+      
+      // Dynamic budget: use the user's actual logged income as their monthly budget allowance/cap.
+      // If no income has been recorded yet, fallback to default 40,000.
+      const budgetCap = totalIncome > 0 ? totalIncome : defaultBudgetLimit;
+      const spentPercentage = budgetCap > 0 ? Math.min(100, Math.round((totalExpenses / budgetCap) * 100)) : 0;
+      const remaining = Math.max(0, budgetCap - totalExpenses);
       
       const categorySpending = expenses.reduce((acc, curr) => {
          const standardId = getCategoryIdFromDbName(curr.category, curr.type);
          const standardDbName = categoryIdToDbName[standardId] || 'Other Expenses';
          acc[standardDbName] = (acc[standardDbName] || 0) + curr.amount;
+         acc[standardId] = (acc[standardId] || 0) + curr.amount;
          return acc;
       }, {});
 
-      return { totalExpenses, totalIncome, spentPercentage, remaining, categorySpending };
+      return { totalExpenses, totalIncome, budgetCap, spentPercentage, remaining, categorySpending };
    }, [transactions]);
+
+   const budgetLimit = stats.budgetCap;
+
+   const topExpenseCategory = React.useMemo(() => {
+      let maxSpent = 0;
+      let topCat = null;
+      expenseCategories.forEach(cat => {
+         const spent = stats.categorySpending[cat.id] || stats.categorySpending[categoryIdToDbName[cat.id]] || 0;
+         if (spent > maxSpent) {
+            maxSpent = spent;
+            topCat = { ...cat, spent };
+         }
+      });
+      return topCat;
+   }, [stats.categorySpending, expenseCategories]);
+
+   const handleAmountChange = (e) => {
+      let val = e.target.value;
+      if (val.includes('-')) {
+         val = val.replace(/-/g, '');
+      }
+      if (val === '') {
+         setAmount('');
+         return;
+      }
+      const num = parseFloat(val);
+      if (!isNaN(num) && num >= 0) {
+         setAmount(val);
+      }
+   };
 
    const handleAddTransaction = async (e) => {
       e.preventDefault();
 
       if (transactionType === 'expense' && !editingId) {
          let entriesToSave = [...tempEntries];
-         if (amount && category && !isNaN(parseFloat(amount))) {
-            entriesToSave.push({ category, amount: parseFloat(amount) });
+         const parsedAmt = parseFloat(amount);
+         if (amount && category && !isNaN(parsedAmt) && parsedAmt > 0) {
+            entriesToSave.push({ category, amount: parsedAmt });
          }
 
          if (entriesToSave.length === 0) return;
@@ -167,7 +203,7 @@ const FinanceScreen = () => {
                const payload = {
                   category_name: currentCategoryName,
                   type: transactionType,
-                  amount: parseFloat(entry.amount),
+                  amount: Math.abs(parseFloat(entry.amount)),
                   description: desc,
                   transaction_date: new Date().toISOString()
                };
@@ -189,6 +225,8 @@ const FinanceScreen = () => {
          setTempEntries([]);
       } else {
          if (!amount || !category) return;
+         const parsedAmt = parseFloat(amount);
+         if (isNaN(parsedAmt) || parsedAmt <= 0) return;
 
          const currentCategoryName = categoryIdToDbName[category] || 'Other Expenses';
          const desc = note || currentCategoryName;
@@ -198,7 +236,7 @@ const FinanceScreen = () => {
                const payload = {
                   category_name: currentCategoryName,
                   type: transactionType,
-                  amount: parseFloat(amount),
+                  amount: parsedAmt,
                   description: desc,
                   transaction_date: new Date().toISOString()
                };
@@ -215,7 +253,7 @@ const FinanceScreen = () => {
                const payload = {
                   category_name: currentCategoryName,
                   type: transactionType,
-                  amount: parseFloat(amount),
+                  amount: parsedAmt,
                   description: desc,
                   transaction_date: new Date().toISOString()
                };
@@ -237,11 +275,12 @@ const FinanceScreen = () => {
 
     const handleCategoryClick = (catId) => {
        if (transactionType === 'expense' && !editingId) {
-          if (amount && !isNaN(parseFloat(amount))) {
+          const parsedAmt = parseFloat(amount);
+          if (amount && !isNaN(parsedAmt) && parsedAmt > 0) {
              const targetCategory = (isCategorySelectedForCurrentEntry && category && category !== catId)
                 ? category
                 : catId;
-             setTempEntries(prev => [...prev, { category: targetCategory, amount: parseFloat(amount) }]);
+             setTempEntries(prev => [...prev, { category: targetCategory, amount: parsedAmt }]);
              setAmount('');
              setCategory(catId);
           } else {
@@ -665,10 +704,27 @@ const FinanceScreen = () => {
                                     ref={inputRef}
                                     autoFocus
                                     type="number" 
+                                    min="0.01"
+                                    step="any"
                                     value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
+                                    onChange={handleAmountChange}
+                                    onKeyDown={(e) => {
+                                       if (e.key === '-' || e.key === 'Subtract' || e.key === 'e' || e.key === 'E') {
+                                          e.preventDefault();
+                                       }
+                                    }}
+                                    onPaste={(e) => {
+                                       const text = e.clipboardData.getData('text');
+                                       if (text && (text.includes('-') || isNaN(parseFloat(text)) || parseFloat(text) <= 0)) {
+                                          e.preventDefault();
+                                          const clean = text.replace(/-/g, '').trim();
+                                          if (clean && !isNaN(parseFloat(clean)) && parseFloat(clean) > 0) {
+                                             setAmount(clean);
+                                          }
+                                       }
+                                    }}
                                     placeholder={showOverlay ? "" : calculationPlaceholder}
-                                    className="w-full bg-[#F5E6EA]/30 border-2 border-transparent focus:border-[#ff69b4]/20 rounded-[2rem] py-6 pl-12 pr-8 text-3xl font-black outline-none transition-all placeholder:opacity-50"
+                                    className="w-full bg-[#F5E6EA]/30 border-2 border-transparent focus:border-[#ff69b4]/20 rounded-[2rem] py-6 pl-12 pr-8 text-3xl font-black outline-none transition-all placeholder:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                  />
                                  {showOverlay && (
                                     <div 
@@ -680,6 +736,12 @@ const FinanceScreen = () => {
                                     </div>
                                  )}
                               </div>
+                              {amount !== '' && (!parseFloat(amount) || parseFloat(amount) <= 0) && (
+                                 <p className="text-[11px] font-bold text-rose-500 px-4 flex items-center gap-1.5 animate-in fade-in duration-200">
+                                    <AlertCircle size={13} className="shrink-0" />
+                                    <span>{t('finance.positiveAmountRequired', 'Please enter a positive amount greater than ₹0')}</span>
+                                 </p>
+                              )}
                            </div>
 
                            <div className="space-y-4">
@@ -718,8 +780,8 @@ const FinanceScreen = () => {
                               type="submit"
                               disabled={
                                  transactionType === 'expense' && !editingId
-                                    ? (tempEntries.length === 0 && (!amount || !category))
-                                    : (!amount || !category)
+                                    ? (tempEntries.length === 0 && (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0 || !category))
+                                    : (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0 || !category)
                               }
                               className="w-full h-14 bg-gradient-to-r from-[#ff69b4] to-[#ff1493] text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:shadow-xl hover:shadow-rose-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:shadow-none"
                            >
@@ -734,67 +796,183 @@ const FinanceScreen = () => {
 
          <AnimatePresence>
             {isReportOpen && (
-               <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+               <div className="fixed inset-0 z-[20000] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
                   <motion.div
                      initial={{ opacity: 0 }}
                      animate={{ opacity: 1 }}
                      exit={{ opacity: 0 }}
                      onClick={() => setIsReportOpen(false)}
-                     className="absolute inset-0 bg-[#15192c]/80 backdrop-blur-xl"
+                     className="absolute inset-0 bg-[#15192c]/80 backdrop-blur-md"
                   />
                   <motion.div
-                     initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                     initial={{ opacity: 0, scale: 0.95, y: 15 }}
                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                     exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                     className="relative w-full max-w-2xl bg-white rounded-[4rem] shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar overflow-hidden"
+                     exit={{ opacity: 0, scale: 0.95, y: 0 }}
+                     transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
+                     className="relative w-full max-w-xl md:max-w-2xl bg-white rounded-3xl shadow-2xl border border-rose-100 flex flex-col max-h-[88vh] overflow-hidden"
                   >
-                     <div className="p-10 md:p-14">
-                        <div className="flex items-center justify-between mb-12">
+                     {/* ── Sticky Top Header ── */}
+                     <div className="px-5 sm:px-6 py-4 bg-gradient-to-r from-white via-rose-50/30 to-white border-b border-rose-100 flex items-center justify-between shrink-0">
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#ff69b4] to-[#ff1493] text-white flex items-center justify-center shadow-md shadow-pink-500/20 shrink-0">
+                              <Sparkles size={20} />
+                           </div>
                            <div>
-                              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ff69b4] mb-2">{t('finance.analysisComplete', 'Analysis Complete')}</p>
-                              <h3 className="text-3xl font-black" style={{ color: '#15192c' }}>{t('finance.monthlyReport', 'Monthly Report')}</h3>
-                           </div>
-                           <button 
-                              onClick={() => setIsReportOpen(false)}
-                              className="w-12 h-12 rounded-full border border-[#F5E6EA] flex items-center justify-center text-[#C4A0AC] hover:bg-[#FDEEF1] hover:text-[#ff69b4] transition-all"
-                           >
-                              <X size={24} />
-                           </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                           <div className="p-8 rounded-[2.5rem] bg-[#FDEEF1] border border-white/50">
-                              <p className="text-[9px] font-black uppercase tracking-widest text-[#D17B88] mb-4">{t('finance.netSavings', 'Net Savings')}</p>
-                              <h4 className="text-4xl font-black mb-2" style={{ color: '#15192c' }}>₹{(stats.totalIncome - stats.totalExpenses).toLocaleString()}</h4>
-                              <p className="text-[11px] font-bold text-[#D17B88]">{t('finance.netBalanceDesc', 'Net Account Balance')}</p>
-                           </div>
-                           <div className="p-8 rounded-[2.5rem] bg-[#F5F1FE] border border-white/50">
-                              <p className="text-[9px] font-black uppercase tracking-widest text-[#9079C1] mb-4">{t('finance.expenses', 'Expenses')}</p>
-                              <h4 className="text-4xl font-black mb-2" style={{ color: '#15192c' }}>₹{stats.totalExpenses.toLocaleString()}</h4>
-                              <p className="text-[11px] font-bold text-[#9079C1]">{t('finance.totalOutflow', 'Total Outflow')}</p>
+                              <div className="flex items-center gap-2 mb-0.5">
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-[#ff69b4]">
+                                    {t('finance.analysisComplete', 'AI Analysis Complete')}
+                                 </span>
+                                 <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-500 border border-rose-100">
+                                    {new Date().toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
+                                 </span>
+                              </div>
+                              <h3 className="text-xl sm:text-2xl font-black text-[#15192c] tracking-tight">
+                                 {t('finance.monthlyReport', 'Monthly Financial Report')}
+                              </h3>
                            </div>
                         </div>
+                        <button 
+                           onClick={() => setIsReportOpen(false)}
+                           aria-label="Close report"
+                           className="w-9 h-9 rounded-full border border-rose-100 bg-white hover:bg-rose-50 flex items-center justify-center text-[#9A8A8E] hover:text-[#ff69b4] transition-all cursor-pointer shadow-xs active:scale-95"
+                        >
+                           <X size={18} />
+                        </button>
+                     </div>
 
-                        <div className="space-y-8 mb-12">
-                           <h5 className="text-[10px] font-black uppercase tracking-widest text-[#C4A0AC]">{t('finance.detailedBreakdown', 'Detailed Breakdown')}</h5>
-                           <div className="space-y-6">
+                     {/* ── Scrollable Body ── */}
+                     <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-4 thin-scrollbar">
+                        {/* 1. Key Metrics Strip (Inflow, Outflow, Net Balance) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                           {/* Income Card */}
+                           <div className="p-3.5 sm:p-4 rounded-2xl bg-[#F5FBF7] border border-emerald-100 flex flex-col justify-between">
+                              <div className="flex items-center justify-between mb-2">
+                                 <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700">
+                                    {t('finance.totalIncome', 'Total Income')}
+                                 </span>
+                                 <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                    <ArrowDownRight size={13} />
+                                 </div>
+                              </div>
+                              <h4 className="text-xl sm:text-2xl font-black text-[#15192c]">
+                                 ₹{stats.totalIncome.toLocaleString()}
+                              </h4>
+                              <p className="text-[10px] font-semibold text-emerald-600 mt-1">
+                                 {t('finance.totalInflow', 'Total Inflow')}
+                              </p>
+                           </div>
+
+                           {/* Expenses Card */}
+                           <div className="p-3.5 sm:p-4 rounded-2xl bg-[#FDEEF1] border border-rose-100 flex flex-col justify-between">
+                              <div className="flex items-center justify-between mb-2">
+                                 <span className="text-[9px] font-black uppercase tracking-wider text-[#D17B88]">
+                                    {t('finance.expenses', 'Expenses')}
+                                 </span>
+                                 <div className="w-6 h-6 rounded-lg bg-rose-100 text-[#D17B88] flex items-center justify-center">
+                                    <ArrowUpRight size={13} />
+                                 </div>
+                              </div>
+                              <h4 className="text-xl sm:text-2xl font-black text-[#15192c]">
+                                 ₹{stats.totalExpenses.toLocaleString()}
+                              </h4>
+                              <p className="text-[10px] font-semibold text-[#D17B88] mt-1">
+                                 {stats.spentPercentage}% of {stats.totalIncome > 0 ? t('finance.income', 'income') : t('finance.limit', 'limit')}
+                              </p>
+                           </div>
+
+                           {/* Net Savings Card */}
+                           <div className={`p-3.5 sm:p-4 rounded-2xl border flex flex-col justify-between ${
+                              (stats.totalIncome - stats.totalExpenses) >= 0 
+                                 ? 'bg-[#F5F1FE] border-purple-100' 
+                                 : 'bg-amber-50/80 border-amber-200'
+                           }`}>
+                              <div className="flex items-center justify-between mb-2">
+                                 <span className={`text-[9px] font-black uppercase tracking-wider ${
+                                    (stats.totalIncome - stats.totalExpenses) >= 0 ? 'text-[#9079C1]' : 'text-amber-700'
+                                 }`}>
+                                    {t('finance.netSavings', 'Net Savings')}
+                                 </span>
+                                 <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                                    (stats.totalIncome - stats.totalExpenses) >= 0 
+                                       ? 'bg-purple-100 text-[#9079C1]' 
+                                       : 'bg-amber-100 text-amber-700'
+                                 }`}>
+                                    <Wallet size={13} />
+                                 </div>
+                              </div>
+                              <h4 className={`text-xl sm:text-2xl font-black ${
+                                 (stats.totalIncome - stats.totalExpenses) >= 0 ? 'text-[#15192c]' : 'text-amber-800'
+                              }`}>
+                                 ₹{(stats.totalIncome - stats.totalExpenses).toLocaleString()}
+                              </h4>
+                              <p className={`text-[10px] font-semibold mt-1 ${
+                                 (stats.totalIncome - stats.totalExpenses) >= 0 ? 'text-[#9079C1]' : 'text-amber-700'
+                              }`}>
+                                 {t('finance.netBalanceDesc', 'Net Account Balance')}
+                              </p>
+                           </div>
+                        </div>
+
+                        {/* Budget Limit Tracker Mini-bar */}
+                        <div className="p-3.5 rounded-2xl bg-rose-50/40 border border-rose-100/60">
+                           <div className="flex items-center justify-between text-xs font-bold mb-1.5">
+                              <span className="text-[#6B5E63] text-[11px] flex items-center gap-1.5">
+                                 <CreditCard size={13} className="text-[#ff69b4]" />
+                                 {stats.totalIncome > 0 ? t('finance.monthlyIncomeCap', 'Monthly Income Cap') : t('finance.monthlyBudgetCap', 'Monthly Budget Cap')} (₹{stats.budgetCap.toLocaleString()})
+                              </span>
+                              <span className="text-[#15192c] font-black text-[11px]">
+                                 ₹{stats.remaining.toLocaleString()} {t('finance.left', 'remaining')}
+                              </span>
+                           </div>
+                           <div className="h-2 w-full bg-white rounded-full overflow-hidden border border-rose-100">
+                              <motion.div 
+                                 initial={{ width: 0 }}
+                                 animate={{ width: `${stats.spentPercentage}%` }}
+                                 transition={{ duration: 0.8, ease: "easeOut" }}
+                                 className={`h-full rounded-full ${stats.spentPercentage > 85 ? 'bg-rose-500' : 'bg-gradient-to-r from-[#ff69b4] to-[#ff1493]'}`}
+                              />
+                           </div>
+                        </div>
+
+                        {/* 2. Detailed Breakdown */}
+                        <div className="p-4 rounded-2xl bg-[#FFF9FA] border border-[#F5E6EA] space-y-3">
+                           <div className="flex items-center justify-between">
+                              <h5 className="text-[10px] font-black uppercase tracking-wider text-[#9A8A8E] flex items-center gap-1.5">
+                                 <PieChart size={13} className="text-[#ff69b4]" />
+                                 {t('finance.detailedBreakdown', 'Detailed Category Breakdown')}
+                              </h5>
+                              <span className="text-[10px] font-bold text-[#C4A0AC]">
+                                 {expenseCategories.filter(cat => (stats.categorySpending[cat.id] || stats.categorySpending[categoryIdToDbName[cat.id]] || 0) > 0).length} of {expenseCategories.length} active
+                              </span>
+                           </div>
+
+                           <div className="space-y-3">
                               {expenseCategories.map((cat) => {
-                                 const spent = stats.categorySpending[cat.id] || 0;
+                                 const spent = stats.categorySpending[cat.id] || stats.categorySpending[categoryIdToDbName[cat.id]] || 0;
                                  const percent = stats.totalExpenses > 0 ? Math.round((spent / stats.totalExpenses) * 100) : 0;
                                  return (
-                                    <div key={cat.id} className="flex items-center gap-6">
-                                       <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: cat.color, color: cat.text }}>
-                                          <cat.icon size={22} />
+                                    <div key={cat.id} className="flex items-center gap-3">
+                                       <div 
+                                          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-xs" 
+                                          style={{ backgroundColor: cat.color, color: cat.text }}
+                                       >
+                                          <cat.icon size={15} />
                                        </div>
-                                       <div className="flex-1">
-                                          <div className="flex justify-between text-xs font-black mb-2">
-                                             <span style={{ color: '#15192c' }}>{cat.label}</span>
-                                             <span style={{ color: '#6B5E63' }}>₹{spent.toLocaleString()} ({percent}%)</span>
+                                       <div className="flex-1 min-w-0">
+                                          <div className="flex justify-between items-center text-xs font-bold mb-1">
+                                             <span className="text-[#15192c] truncate">{cat.label}</span>
+                                             <div className="flex items-center gap-1.5 shrink-0">
+                                                <span className="text-[#15192c] font-black">₹{spent.toLocaleString()}</span>
+                                                <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-md bg-white border border-rose-100 text-[#9A8A8E]">
+                                                   {percent}%
+                                                </span>
+                                             </div>
                                           </div>
-                                          <div className="h-2 w-full bg-rose-50 rounded-full overflow-hidden">
+                                          <div className="h-1.5 w-full bg-rose-50 rounded-full overflow-hidden">
                                              <motion.div 
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${percent}%` }}
+                                                transition={{ duration: 0.6, ease: "easeOut" }}
                                                 className="h-full rounded-full" 
                                                 style={{ backgroundColor: cat.text }}
                                              />
@@ -806,104 +984,134 @@ const FinanceScreen = () => {
                            </div>
                         </div>
 
-                        <div className="p-10 rounded-[3rem] bg-[#15192c] text-white relative overflow-hidden">
-                           <div className="absolute top-0 right-0 w-32 h-32 bg-[#ff69b4]/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                           <div className="flex items-start gap-5 relative z-10">
-                              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
-                                 <Sparkles className="text-[#ff69b4]" size={24} />
+                        {/* 3. Sakhi's AI Insights Card */}
+                        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#15192c] via-[#241728] to-[#15192c] text-white relative overflow-hidden border border-white/10 shadow-lg">
+                           <div className="absolute top-0 right-0 w-36 h-36 bg-[#ff69b4]/15 rounded-full blur-3xl pointer-events-none"></div>
+                           <div className="flex items-start gap-3.5 relative z-10">
+                              <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0 text-[#ff69b4]">
+                                 <Sparkles size={18} />
                               </div>
-                              <div>
-                                 <p className="text-[10px] font-black uppercase tracking-widest text-[#ff69b4] mb-2">{t('finance.sakhisInsight', "Sakhi's Insight")}</p>
-                                 <p className="text-sm font-medium leading-relaxed opacity-80">
+                              <div className="space-y-1.5 flex-1 min-w-0">
+                                 <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-[#ff69b4]">
+                                       {t('finance.sakhisInsight', "Sakhi's Financial Insight")}
+                                    </p>
+                                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-pink-200">
+                                       {(stats.totalIncome - stats.totalExpenses) >= 0 ? "✨ Healthy Cashflow" : "⚠️ Attention Needed"}
+                                    </span>
+                                 </div>
+                                 <p className="text-xs sm:text-[13px] font-medium leading-relaxed text-slate-200">
                                     {(stats.totalIncome - stats.totalExpenses) < 0 
                                        ? t('finance.negativeBalanceTip', "Your expenses are higher than your income this month, sweetie. Let's try to focus on essential spending and bring it back to balance! 🌸") 
                                        : t('finance.underBudgetTip', "You're managing your budget wonderfully! You have plenty of room for your savings goals. Keep it up! ✨")}
                                  </p>
+                                 {topExpenseCategory && topExpenseCategory.spent > 0 && (
+                                    <p className="text-[11px] font-medium text-pink-200/90 pt-1.5 border-t border-white/10 flex items-center gap-1.5">
+                                       <span>💡</span>
+                                       <span>
+                                          Top expense: <strong className="text-white font-bold">{topExpenseCategory.label}</strong> (₹{topExpenseCategory.spent.toLocaleString()}).
+                                       </span>
+                                    </p>
+                                 )}
                               </div>
                            </div>
                         </div>
+                     </div>
 
+                     {/* ── Sticky Bottom Footer ── */}
+                     <div className="px-5 sm:px-6 py-3.5 bg-[#FFF7F8] border-t border-rose-100 flex items-center justify-between gap-3 shrink-0">
+                        <button
+                           type="button"
+                           onClick={() => setIsReportOpen(false)}
+                           className="px-4 py-2.5 rounded-xl text-xs font-bold text-[#6B5E63] hover:text-[#15192c] hover:bg-rose-100/60 transition-all cursor-pointer"
+                        >
+                           {t('common.close', 'Close')}
+                        </button>
                         <button 
                            onClick={handleDownloadPDF}
                            disabled={isDownloading}
-                           className="w-full py-6 bg-rose-50 text-[#ff69b4] rounded-[2rem] text-xs font-bold uppercase tracking-widest mt-10 hover:bg-rose-100 transition-all flex items-center justify-center gap-3"
+                           className="px-5 py-2.5 bg-gradient-to-r from-[#ff69b4] to-[#ff1493] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:shadow-lg hover:shadow-pink-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                         >
                            {isDownloading ? (
                               <>
                                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>
-                                    <Sparkles size={16} />
+                                    <Sparkles size={14} />
                                  </motion.div>
-                                 {t('finance.preparingPdf', 'Preparing PDF...')}
+                                 <span>{t('finance.preparingPdf', 'Preparing PDF...')}</span>
                               </>
                            ) : (
-                              t('finance.downloadReport', 'Download PDF Report')
+                              <>
+                                 <Download size={14} />
+                                 <span>{t('finance.downloadReport', 'Download PDF Report')}</span>
+                              </>
                            )}
                         </button>
                      </div>
                   </motion.div>
                </div>
             )}
-         </AnimatePresence>
+          </AnimatePresence>
 
-         <AnimatePresence>
-            {isTipsOpen && (
-               <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                  <motion.div
-                     initial={{ opacity: 0 }}
-                     animate={{ opacity: 1 }}
-                     exit={{ opacity: 0 }}
-                     onClick={() => setIsTipsOpen(false)}
-                     className="absolute inset-0 bg-[#15192c]/80 backdrop-blur-xl"
-                  />
-                  <motion.div
-                     initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                     exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                     className="relative w-full max-w-lg bg-white rounded-[4rem] shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar"
-                  >
-                     <div className="p-10 md:p-14">
-                        <div className="flex items-center justify-between mb-10">
-                           <div>
-                              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ff69b4] mb-2">{t('finance.smartHabits', 'Smart Habits')}</p>
-                              <h3 className="text-3xl font-black" style={{ color: '#15192c' }}>{t('finance.sakhisBudgetTips', "Sakhi's Budget Tips")}</h3>
-                           </div>
-                           <button 
-                              onClick={() => setIsTipsOpen(false)}
-                              className="w-12 h-12 rounded-full border border-[#F5E6EA] flex items-center justify-center text-[#C4A0AC] hover:bg-[#FDEEF1] hover:text-[#ff69b4] transition-all"
-                           >
-                              <X size={24} />
-                           </button>
-                        </div>
+          <AnimatePresence>
+             {isTipsOpen && (
+                <div className="fixed inset-0 z-[20000] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
+                   <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setIsTipsOpen(false)}
+                      className="absolute inset-0 bg-[#15192c]/80 backdrop-blur-md"
+                   />
+                   <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 0 }}
+                      transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
+                      className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-rose-100 flex flex-col max-h-[85vh] overflow-hidden"
+                   >
+                      <div className="px-6 py-4 bg-gradient-to-r from-white via-rose-50/30 to-white border-b border-rose-100 flex items-center justify-between shrink-0">
+                         <div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ff69b4] mb-1">{t('finance.smartHabits', 'Smart Habits')}</p>
+                            <h3 className="text-xl sm:text-2xl font-black text-[#15192c]">{t('finance.sakhisBudgetTips', "Sakhi's Budget Tips")}</h3>
+                         </div>
+                         <button 
+                            onClick={() => setIsTipsOpen(false)}
+                            className="w-9 h-9 rounded-full border border-rose-100 bg-white hover:bg-rose-50 flex items-center justify-center text-[#9A8A8E] hover:text-[#ff69b4] transition-all cursor-pointer shadow-xs active:scale-95"
+                         >
+                            <X size={18} />
+                         </button>
+                      </div>
 
-                        <div className="space-y-6">
-                           {budgetTips.map((tip) => (
-                              <motion.div 
-                                 key={tip.id}
-                                 whileHover={{ x: 5 }}
-                                 className="flex items-start gap-5 p-6 rounded-3xl bg-rose-50/30 border border-transparent hover:border-plum-border transition-all"
-                              >
-                                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: tip.color, color: tip.text }}>
-                                    <tip.icon size={22} />
-                                 </div>
-                                 <div>
-                                    <h4 className="text-sm font-black mb-1" style={{ color: '#15192c' }}>{tip.title}</h4>
-                                    <p className="text-[12px] leading-relaxed text-[#6B5E63] font-medium opacity-80">{tip.desc}</p>
-                                 </div>
-                              </motion.div>
-                           ))}
-                        </div>
+                      <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-3 thin-scrollbar">
+                         {budgetTips.map((tip) => (
+                            <motion.div 
+                               key={tip.id}
+                               whileHover={{ x: 4 }}
+                               className="flex items-start gap-4 p-4 rounded-2xl bg-rose-50/30 border border-rose-100/50 hover:border-[#ff69b4]/30 hover:bg-rose-50/60 transition-all"
+                            >
+                               <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs" style={{ backgroundColor: tip.color, color: tip.text }}>
+                                  <tip.icon size={18} />
+                               </div>
+                               <div className="min-w-0">
+                                  <h4 className="text-sm font-black text-[#15192c] mb-1">{tip.title}</h4>
+                                  <p className="text-[12px] leading-relaxed text-[#6B5E63] font-medium">{tip.desc}</p>
+                               </div>
+                            </motion.div>
+                         ))}
+                      </div>
 
-                        <button 
-                           onClick={() => setIsTipsOpen(false)}
-                           className="w-full py-6 bg-[#15192c] text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] shadow-2xl mt-10 hover:brightness-110 transition-all"
-                        >
-                           {t('finance.gotIt', 'Got it, Sakhi! 💖')}
-                        </button>
-                     </div>
-                  </motion.div>
-               </div>
-            )}
-         </AnimatePresence>
+                      <div className="px-6 py-3.5 bg-[#FFF7F8] border-t border-rose-100 shrink-0">
+                         <button 
+                            onClick={() => setIsTipsOpen(false)}
+                            className="w-full py-3 bg-[#15192c] hover:bg-[#251a30] text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] shadow-md transition-all cursor-pointer active:scale-95"
+                         >
+                            {t('finance.gotIt', 'Got it, Sakhi! 💖')}
+                         </button>
+                      </div>
+                   </motion.div>
+                </div>
+             )}
+          </AnimatePresence>
       </>
    );
 };

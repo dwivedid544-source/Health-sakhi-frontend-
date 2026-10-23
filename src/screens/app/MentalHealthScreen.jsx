@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 
 import axiosClient from '../../api/axiosClient';
+import memberApi from '../../api/memberApi';
+import confetti from 'canvas-confetti';
 
 
 
@@ -26,20 +28,28 @@ const getResultFromScore = (score, t) => {
   return { label: t('mentalHealth.results.needsSupport.label', 'Needs Support'), color: 'rose', icon: AlertTriangle, msg: t('mentalHealth.results.needsSupport.msg', "It's okay to struggle. Please talk to someone you trust or use our Expert Chat."), badgeColor: 'bg-rose-50 border-rose-100 text-rose-700' };
 };
 
-// ── Box Breathing Component ──────────────────────────────────────────────────
+// ── Box Breathing Component (Anxiety SOS) ───────────────────────────────────
 const BreathingModal = ({ onClose }) => {
   const { t } = useLanguage();
   const phases = [
-    { label: t('mentalHealth.inhale', 'Inhale'), duration: 4, color: '#ff69b4', scale: 1.35 },
-    { label: t('mentalHealth.hold', 'Hold'), duration: 4, color: '#9079C1', scale: 1.35 },
-    { label: t('mentalHealth.exhale', 'Exhale'), duration: 4, color: '#64B5F6', scale: 0.7 },
-    { label: t('mentalHealth.hold', 'Hold'), duration: 4, color: '#81C784', scale: 0.7 },
+    { label: t('mentalHealth.inhale', 'Inhale'), sub: 'Deep breath in through nose', duration: 4, color: '#EC4899', scale: 1.35 },
+    { label: t('mentalHealth.hold', 'Hold'), sub: 'Gently hold your breath', duration: 4, color: '#8B5CF6', scale: 1.35 },
+    { label: t('mentalHealth.exhale', 'Exhale'), sub: 'Slow exhale through mouth', duration: 4, color: '#0EA5E9', scale: 0.75 },
+    { label: t('mentalHealth.hold', 'Hold'), sub: 'Rest empty & relaxed', duration: 4, color: '#10B981', scale: 0.75 },
   ];
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [count, setCount] = useState(phases[0].duration);
   const [cycles, setCycles] = useState(0);
   const [running, setRunning] = useState(false);
   const intervalRef = useRef(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   useEffect(() => {
     if (!running) return;
@@ -63,42 +73,107 @@ const BreathingModal = ({ onClose }) => {
   const current = phases[phaseIdx];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#15192c]/80 backdrop-blur-md p-4">
-      <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
-        className="bg-white rounded-[3rem] p-10 w-full max-w-sm text-center shadow-2xl relative">
-        <button onClick={onClose} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#C4A0AC] hover:bg-rose-100 transition-all">
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100000] flex items-center justify-center bg-[#15192c]/85 backdrop-blur-md p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      <motion.div 
+        initial={{ scale: 0.92, y: 15 }} 
+        animate={{ scale: 1, y: 0 }} 
+        exit={{ scale: 0.92, y: 15 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-[3rem] p-6 sm:p-8 md:p-10 w-full max-w-md text-center shadow-2xl relative border border-rose-100 my-auto"
+      >
+        <button 
+          onClick={onClose} 
+          className="absolute top-6 right-6 w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#C4A0AC] hover:bg-rose-100 hover:text-[#15192c] transition-all cursor-pointer shadow-sm z-20"
+          aria-label="Close"
+        >
           <X size={18} />
         </button>
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#C4A0AC] mb-2">{t('mentalHealth.anxietySos', 'Anxiety SOS')}</p>
-        <h2 className="text-2xl font-black text-[#15192c] mb-1">{t('mentalHealth.boxBreathing', 'Box Breathing')}</h2>
-        <p className="text-xs text-[#9A8A8E] mb-8">{t('mentalHealth.breathingDesc', '4-4-4-4 pattern to calm your nervous system')}</p>
 
-        <div className="relative flex items-center justify-center mb-8 h-48">
-          <motion.div animate={{ scale: running ? current.scale : 1, backgroundColor: running ? current.color + '22' : '#FFF1F2' }}
-            transition={{ duration: current.duration * 0.9, ease: 'easeInOut' }}
-            className="absolute w-40 h-40 rounded-full border-2"
-            style={{ borderColor: running ? current.color : '#f9a8d4' }} />
-          <motion.div animate={{ scale: running ? current.scale * 0.7 : 0.7 }}
-            transition={{ duration: current.duration * 0.9, ease: 'easeInOut' }}
-            className="absolute w-24 h-24 rounded-full"
-            style={{ backgroundColor: running ? current.color + '40' : '#fce7f3' }} />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-50 border border-pink-100 text-[#ff69b4] text-[10px] font-black uppercase tracking-wider mb-2">
+          <Wind size={13} />
+          <span>{t('mentalHealth.anxietySos', 'Anxiety SOS')}</span>
+        </div>
+
+        <h2 className="text-2xl sm:text-3xl font-black text-[#15192c] mb-1">
+          {t('mentalHealth.boxBreathing', 'Box Breathing')} 🫁
+        </h2>
+        <p className="text-xs text-[#9A8A8E] max-w-xs mx-auto mb-6">
+          {t('mentalHealth.breathingDesc', '4-4-4-4 clinically proven pattern to calm your nervous system and relieve acute anxiety.')}
+        </p>
+
+        {/* Dynamic Pulsing Breathing Visualizer */}
+        <div className="relative flex items-center justify-center mb-6 h-52">
+          {/* Outer Pulsing Aura */}
+          <motion.div 
+            animate={{ 
+              scale: running ? current.scale : 1, 
+              backgroundColor: running ? current.color + '15' : '#FFF1F2' 
+            }}
+            transition={{ duration: current.duration * 0.95, ease: 'easeInOut' }}
+            className="absolute w-44 h-44 rounded-full border-2"
+            style={{ borderColor: running ? current.color : '#f9a8d4' }} 
+          />
+          
+          {/* Inner Breathing Core */}
+          <motion.div 
+            animate={{ 
+              scale: running ? current.scale * 0.72 : 0.72 
+            }}
+            transition={{ duration: current.duration * 0.95, ease: 'easeInOut' }}
+            className="absolute w-28 h-28 rounded-full shadow-inner"
+            style={{ backgroundColor: running ? current.color + '35' : '#fce7f3' }} 
+          />
+
           <div className="relative z-10 flex flex-col items-center">
-            <span className="text-4xl font-black text-[#15192c]">{running ? count : '4'}</span>
-            <span className="text-sm font-bold mt-1" style={{ color: running ? current.color : '#C4A0AC' }}>
+            <span className="text-5xl font-black text-[#15192c] tracking-tight">
+              {running ? count : '4'}
+            </span>
+            <span className="text-base font-black mt-1" style={{ color: running ? current.color : '#EC4899' }}>
               {running ? current.label : t('mentalHealth.ready', 'Ready')}
             </span>
+            {running && (
+              <span className="text-[10px] font-semibold text-slate-400 mt-0.5">
+                {current.sub}
+              </span>
+            )}
           </div>
         </div>
 
-        {cycles > 0 && <p className="text-xs text-[#ff69b4] font-black mb-4">✓ {cycles} {cycles > 1 ? t('mentalHealth.cyclesCompletes', 'cycles complete') : t('mentalHealth.cyclesComplete', 'cycle complete')}</p>}
+        {cycles > 0 && (
+          <p className="text-xs text-[#ff69b4] font-black mb-4 animate-bounce">
+            ✓ {cycles} {cycles > 1 ? t('mentalHealth.cyclesCompletes', 'cycles complete') : t('mentalHealth.cyclesComplete', 'cycle complete')} 🌸
+          </p>
+        )}
 
-        <button onClick={() => setRunning(r => !r)}
-          className="w-full py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:brightness-110 active:scale-95 shadow-lg"
-          style={{ backgroundColor: running ? '#9079C1' : '#ff69b4' }}>
-          {running ? t('mentalHealth.pause', 'Pause') : cycles > 0 ? t('mentalHealth.continue', 'Continue') : t('mentalHealth.startBreathing', 'Start Breathing')}
-        </button>
-        {running && <p className="text-[10px] text-[#C4A0AC] mt-4 font-medium">{t('mentalHealth.breatheNaturally', 'Breathe naturally and follow the circle...')}</p>}
+        <div className="space-y-3">
+          <button 
+            onClick={() => setRunning(r => !r)}
+            className="w-full py-4 rounded-2xl text-xs font-black uppercase tracking-wider text-white transition-all hover:brightness-110 active:scale-98 shadow-lg shadow-pink-200 cursor-pointer"
+            style={{ backgroundColor: running ? '#8B5CF6' : '#EC4899' }}
+          >
+            {running ? t('mentalHealth.pause', 'Pause Breathing') : cycles > 0 ? t('mentalHealth.continue', 'Continue Breathing') : t('mentalHealth.startBreathing', 'Start Breathing 🌸')}
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-3 rounded-2xl text-xs font-bold text-slate-500 hover:text-[#15192c] hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            {t('mentalHealth.close', 'Close')}
+          </button>
+        </div>
+
+        {running && (
+          <p className="text-[10px] text-[#C4A0AC] mt-3 font-medium">
+            {t('mentalHealth.breatheNaturally', 'Breathe naturally and gently follow the circle...')}
+          </p>
+        )}
       </motion.div>
     </motion.div>
   );
@@ -111,6 +186,14 @@ const QuizModal = ({ onClose, onComplete }) => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const handleAnswer = (optIdx) => {
     const newAnswers = [...answers, optIdx];
@@ -137,11 +220,25 @@ const QuizModal = ({ onClose, onComplete }) => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#15192c]/80 backdrop-blur-md p-4">
-      <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
-        className="bg-white rounded-[3rem] p-10 w-full max-w-sm shadow-2xl relative">
-        <button onClick={onClose} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#C4A0AC] hover:bg-rose-100 transition-all">
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100000] flex items-center justify-center bg-[#15192c]/85 backdrop-blur-md p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      <motion.div 
+        initial={{ scale: 0.92, y: 15 }} 
+        animate={{ scale: 1, y: 0 }} 
+        exit={{ scale: 0.92, y: 15 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-[3rem] p-6 sm:p-8 md:p-10 w-full max-w-md shadow-2xl relative border border-rose-100 my-auto"
+      >
+        <button 
+          onClick={onClose} 
+          className="absolute top-6 right-6 w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#C4A0AC] hover:bg-rose-100 hover:text-[#15192c] transition-all cursor-pointer shadow-sm z-20"
+          aria-label="Close"
+        >
           <X size={18} />
         </button>
 
@@ -156,7 +253,7 @@ const QuizModal = ({ onClose, onComplete }) => {
               <div className="space-y-3">
                 {questionsList[step].opts.map((opt, i) => (
                   <button key={i} onClick={() => handleAnswer(i)}
-                    className="w-full p-4 rounded-2xl border border-rose-50 text-left text-sm font-bold text-[#15192c] hover:border-[#ff69b4] hover:bg-rose-50/30 transition-all">
+                    className="w-full p-4 rounded-2xl border border-rose-50 text-left text-sm font-bold text-[#15192c] hover:border-[#ff69b4] hover:bg-rose-50/30 transition-all cursor-pointer">
                     {t('mental.quiz.opt.' + getOptTranslationKey(opt), opt)}
                   </button>
                 ))}
@@ -172,11 +269,152 @@ const QuizModal = ({ onClose, onComplete }) => {
             <h3 className="text-2xl font-black text-[#15192c] mb-3">{result.label}</h3>
             <p className="text-sm text-[#9A8A8E] leading-relaxed mb-8">{result.msg}</p>
             <button onClick={onClose}
-              className="w-full py-4 bg-[#ff69b4] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:brightness-110 transition-all shadow-lg">
+              className="w-full py-4 bg-[#ff69b4] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:brightness-110 transition-all shadow-lg cursor-pointer">
               {t('mentalHealth.done', 'Done ✨')}
             </button>
           </motion.div>
         )}
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// ── Mood Options & In-Page Mood Logger ─────────────────────────────────────
+const MOOD_OPTIONS = [
+  { type: 'Happy', emoji: '😊', score: 95, color: '#EC4899', desc: 'Joyful, peaceful & content' },
+  { type: 'Grateful', emoji: '🌸', score: 90, color: '#8B5CF6', desc: 'Thankful, blessed & grounded' },
+  { type: 'Low Energy', emoji: '🔋', score: 50, color: '#0EA5E9', desc: 'Resting, mellow & slow' },
+  { type: 'Tired', emoji: '🥱', score: 40, color: '#F59E0B', desc: 'Exhausted, needing deep sleep' },
+  { type: 'Stressed', emoji: '😰', score: 25, color: '#F43F5E', desc: 'Overwhelmed, tense & anxious' },
+  { type: 'Sad', emoji: '😔', score: 20, color: '#64748B', desc: 'Feeling low, tender or heavy' },
+];
+
+const MOOD_MAP = MOOD_OPTIONS.reduce((acc, m) => {
+  acc[m.type.toLowerCase()] = m;
+  return acc;
+}, {});
+
+const MoodModal = ({ onClose, onMoodSaved, initialMood }) => {
+  const { t } = useLanguage();
+  const [selectedMood, setSelectedMood] = useState(
+    initialMood ? (MOOD_OPTIONS.find(m => m.type.toLowerCase() === initialMood.toLowerCase()) || MOOD_OPTIONS[0]) : MOOD_OPTIONS[0]
+  );
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!selectedMood) return;
+    try {
+      setSaving(true);
+      await memberApi.logMood({
+        mood_type: selectedMood.type,
+        intensity: 5,
+        notes: notes.trim()
+      });
+      try {
+        confetti({
+          particleCount: 80,
+          spread: 60,
+          origin: { y: 0.6 }
+        });
+      } catch (e) {}
+      onMoodSaved(selectedMood, notes.trim());
+      onClose();
+    } catch (err) {
+      console.error("Failed to log mood pulse:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100000] flex items-center justify-center bg-[#15192c]/80 backdrop-blur-md p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      <motion.div 
+        initial={{ scale: 0.92, y: 20 }} 
+        animate={{ scale: 1, y: 0 }} 
+        exit={{ scale: 0.92, y: 20 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-[3rem] p-6 sm:p-8 md:p-10 w-full max-w-lg shadow-2xl relative border border-rose-100 my-auto"
+      >
+        <button 
+          onClick={onClose} 
+          className="absolute top-6 right-6 w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#C4A0AC] hover:bg-rose-100 hover:text-[#15192c] transition-all cursor-pointer"
+        >
+          <X size={18} />
+        </button>
+
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-2xl bg-pink-50 border border-pink-100 flex items-center justify-center text-[#ff69b4]">
+            <Heart size={20} />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#ff69b4]">
+              {t('mentalHealth.emotionalCheckIn', 'Daily Emotional Pulse')}
+            </p>
+            <h2 className="text-2xl font-black text-[#15192c]">
+              {t('mentalHealth.howFeeling', 'How are you feeling today?')}
+            </h2>
+          </div>
+        </div>
+        <p className="text-xs text-[#9A8A8E] mb-6">
+          {t('mentalHealth.moodPrompt', 'Select your state to dynamically update your Weekly Pulse and Joy Index.')}
+        </p>
+
+        {/* 6 Mood Cards Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+          {MOOD_OPTIONS.map((m) => {
+            const isSelected = selectedMood.type === m.type;
+            return (
+              <motion.button
+                key={m.type}
+                type="button"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setSelectedMood(m)}
+                className={`p-3.5 rounded-2xl border-2 text-center flex flex-col items-center justify-between transition-all cursor-pointer ${
+                  isSelected 
+                    ? 'border-[#ff69b4] bg-pink-50/50 shadow-md shadow-pink-100' 
+                    : 'border-rose-50 bg-white hover:border-pink-200'
+                }`}
+              >
+                <span className="text-3xl mb-1">{m.emoji}</span>
+                <span className="text-xs font-black text-[#15192c]">{m.type}</span>
+                <span className="text-[10px] font-bold text-[#ff69b4] mt-0.5">{m.score}% Joy</span>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* Optional Notes */}
+        <div className="space-y-2 mb-6">
+          <label className="text-[11px] font-black uppercase text-[#C4A0AC] tracking-wider block">
+            {t('mentalHealth.notesLabel', 'Reflections / Triggers (Optional)')}
+          </label>
+          <input
+            type="text"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="e.g. Slept peacefully, gentle morning walk..."
+            className="w-full px-4 py-3 rounded-2xl bg-rose-50/40 border border-rose-100 text-xs font-medium text-[#15192c] focus:outline-none focus:border-[#ff69b4] transition-all"
+          />
+        </div>
+
+        {/* Action Button */}
+        <button
+          type="button"
+          disabled={saving}
+          onClick={handleSave}
+          className="w-full py-4 rounded-2xl text-xs font-black uppercase tracking-wider text-white bg-[#ff69b4] hover:bg-pink-600 transition-all shadow-lg shadow-pink-200 hover:scale-[1.01] active:scale-98 cursor-pointer disabled:bg-slate-300 flex items-center justify-center gap-2"
+        >
+          <Sparkles size={16} />
+          <span>{saving ? 'Recording Pulse...' : 'Record Mood Pulse 🌸'}</span>
+        </button>
       </motion.div>
     </motion.div>
   );
@@ -188,11 +426,13 @@ const MentalHealthScreen = () => {
   const { t } = useLanguage();
   const [showSOS, setShowSOS] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [showMoodModal, setShowMoodModal] = useState(false);
   const [emotionalState, setEmotionalState] = useState(() => {
     try { return JSON.parse(localStorage.getItem('hs_emotional_state')) || { label: 'Balanced & Calm', badgeColor: 'bg-emerald-50 border-emerald-100', textColor: 'text-emerald-700', iconColor: 'text-emerald-600', bgIcon: 'bg-emerald-100' }; }
     catch { return { label: 'Balanced & Calm', badgeColor: 'bg-emerald-50 border-emerald-100', textColor: 'text-emerald-700', iconColor: 'text-emerald-600', bgIcon: 'bg-emerald-100' }; }
   });
   const [chartData, setChartData] = useState([]);
+  const [rawLogs, setRawLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -202,38 +442,151 @@ const MentalHealthScreen = () => {
     return t('mental.learning.db.' + cleanKey, str);
   };
 
-  useEffect(() => {
-    const fetchMoodData = async () => {
-      try {
-        setLoading(true);
-        const res = await axiosClient.get('/members/mood');
-        const logs = res.data?.moods || res.data || [];
-        
-        const moodScores = { Happy: 90, Grateful: 85, Stressed: 30, Sad: 20, Tired: 40, 'Low Energy': 45 };
-        const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-        const today = new Date();
-        const mapped = days.map((day, i) => {
-          const d = new Date(today); d.setDate(today.getDate() - (6 - i));
-          const log = logs.find(l => new Date(l.loggedAt).toDateString() === d.toDateString());
-          return { day, value: log ? (moodScores[log.moodType] || 50) : null, hasLog: !!log, isDummy: false };
-        });
-        const hasAnyLog = mapped.some(d => d.hasLog);
-        if (!hasAnyLog) {
-          const DUMMY_CHART = [55, 70, 40, 85, 60, 75, 50];
-          setChartData(days.map((day, i) => ({ day, value: DUMMY_CHART[i], hasLog: false, isDummy: true })));
-        } else {
-          const DUMMY_CHART = [55, 70, 40, 85, 60, 75, 50];
-          setChartData(mapped.map((d, i) => ({ ...d, value: d.value ?? DUMMY_CHART[i] })));
-        }
-      } catch (err) {
-        console.error("Error loading mood data:", err);
-        setError("Unable to load mood history.");
-      } finally {
-        setLoading(false);
+  // Helper: dynamically build current week's Sunday-Saturday array from actual logs
+  const buildDynamicWeeklyChart = (logs) => {
+    const now = new Date();
+    const currentDayOfWeek = now.getDay(); // 0 for Sun, 1 for Mon, ..., 6 for Sat
+    
+    // Find Sunday of the current week
+    const sunday = new Date(now);
+    sunday.setDate(now.getDate() - currentDayOfWeek);
+    sunday.setHours(0, 0, 0, 0);
+
+    const daysShort = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+    return daysShort.map((dayName, idx) => {
+      const dayDate = new Date(sunday);
+      dayDate.setDate(sunday.getDate() + idx);
+      const dateStr = dayDate.toDateString();
+      const isToday = dateStr === now.toDateString();
+      const isFuture = dayDate > now && !isToday;
+
+      // Filter logs belonging to this calendar date
+      const matchingLogs = (logs || []).filter(l => {
+        const logDate = new Date(l.loggedAt || l.logged_at || l.createdAt);
+        return logDate.toDateString() === dateStr;
+      });
+
+      if (matchingLogs.length > 0) {
+        // Take the latest log of the day
+        const latest = matchingLogs[0];
+        const moodKey = (latest.moodType || latest.mood_type || '').toLowerCase();
+        const meta = MOOD_MAP[moodKey] || MOOD_OPTIONS[0];
+
+        return {
+          day: dayName,
+          date: dayDate,
+          dateFormatted: dayDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+          value: meta.score,
+          hasLog: true,
+          moodType: meta.type,
+          emoji: meta.emoji,
+          color: meta.color,
+          notes: latest.notes,
+          intensity: latest.intensity || 5,
+          logTime: new Date(latest.loggedAt || latest.logged_at || latest.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isToday,
+          isFuture: false
+        };
       }
-    };
+
+      // No log recorded for this day
+      return {
+        day: dayName,
+        date: dayDate,
+        dateFormatted: dayDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        value: 0,
+        hasLog: false,
+        moodType: null,
+        emoji: null,
+        color: '#ff69b4',
+        notes: null,
+        isToday,
+        isFuture
+      };
+    });
+  };
+
+  const fetchMoodData = async () => {
+    try {
+      setLoading(true);
+      const res = await memberApi.getMoodLogs().catch(() => ({ moods: [] }));
+      const logs = res?.moods || res?.data?.moods || res?.data || [];
+      setRawLogs(logs);
+      const mapped = buildDynamicWeeklyChart(logs);
+      setChartData(mapped);
+
+      // Auto update emotional state badge based on latest log if present
+      if (logs.length > 0) {
+        const latestMood = (logs[0].moodType || logs[0].mood_type || '').toLowerCase();
+        if (latestMood.includes('happy') || latestMood.includes('grateful')) {
+          setEmotionalState({
+            label: 'Balanced & Calm',
+            badgeColor: 'bg-emerald-50 border-emerald-100',
+            textColor: 'text-emerald-700',
+            iconColor: 'text-emerald-600',
+            bgIcon: 'bg-emerald-100'
+          });
+        } else if (latestMood.includes('energy') || latestMood.includes('tired')) {
+          setEmotionalState({
+            label: 'Mildly Stressed',
+            badgeColor: 'bg-amber-50 border-amber-100',
+            textColor: 'text-amber-700',
+            iconColor: 'text-amber-600',
+            bgIcon: 'bg-amber-100'
+          });
+        } else if (latestMood.includes('stress') || latestMood.includes('sad')) {
+          setEmotionalState({
+            label: 'Needs Support',
+            badgeColor: 'bg-rose-50 border-rose-100',
+            textColor: 'text-rose-700',
+            iconColor: 'text-rose-600',
+            bgIcon: 'bg-rose-100'
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Error loading mood data:", err);
+      setError("Unable to load mood history.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchMoodData();
   }, []);
+
+  const handleMoodSaved = (savedMood, savedNotes) => {
+    // Immediately prepend to local raw logs and recompute chart
+    const newLog = {
+      moodType: savedMood.type,
+      intensity: 5,
+      notes: savedNotes,
+      loggedAt: new Date().toISOString()
+    };
+    const updated = [newLog, ...rawLogs];
+    setRawLogs(updated);
+    setChartData(buildDynamicWeeklyChart(updated));
+
+    // Update emotional state banner
+    if (savedMood.type === 'Happy' || savedMood.type === 'Grateful') {
+      const state = { label: 'Balanced & Calm', badgeColor: 'bg-emerald-50 border-emerald-100', textColor: 'text-emerald-700', iconColor: 'text-emerald-600', bgIcon: 'bg-emerald-100' };
+      setEmotionalState(state);
+      localStorage.setItem('hs_emotional_state', JSON.stringify(state));
+    } else if (savedMood.type === 'Low Energy' || savedMood.type === 'Tired') {
+      const state = { label: 'Mildly Stressed', badgeColor: 'bg-amber-50 border-amber-100', textColor: 'text-amber-700', iconColor: 'text-amber-600', bgIcon: 'bg-amber-100' };
+      setEmotionalState(state);
+      localStorage.setItem('hs_emotional_state', JSON.stringify(state));
+    } else {
+      const state = { label: 'Needs Support', badgeColor: 'bg-rose-50 border-rose-100', textColor: 'text-rose-700', iconColor: 'text-rose-600', bgIcon: 'bg-rose-100' };
+      setEmotionalState(state);
+      localStorage.setItem('hs_emotional_state', JSON.stringify(state));
+    }
+
+    // Also trigger refetch to sync with server
+    fetchMoodData();
+  };
 
   const handleQuizComplete = (result) => {
     const colorMap = {
@@ -293,6 +646,7 @@ const MentalHealthScreen = () => {
       <AnimatePresence>
         {showSOS && <BreathingModal onClose={() => setShowSOS(false)} />}
         {showQuiz && <QuizModal onClose={() => setShowQuiz(false)} onComplete={handleQuizComplete} />}
+        {showMoodModal && <MoodModal onClose={() => setShowMoodModal(false)} onMoodSaved={handleMoodSaved} />}
       </AnimatePresence>
 
       <motion.div variants={container} initial="hidden" animate="show"
@@ -326,48 +680,150 @@ const MentalHealthScreen = () => {
           <div className="lg:col-span-8 space-y-12">
 
             {/* Weekly Chart */}
-            <motion.div variants={item}
-              className="bg-white/60 backdrop-blur-2xl rounded-[3.5rem] p-12 border border-white/60 shadow-xl shadow-rose-100/20 relative overflow-hidden">
-              <div className="flex items-center justify-between mb-12">
-                <div>
-                  <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-[#C4A0AC]">{t('mentalHealth.emotionalFrequency', 'Emotional Frequency')}</h3>
-                  <p className="text-2xl font-black text-[#15192c] mt-1">{t('mentalHealth.weeklyPulseOverview', 'Weekly Pulse Overview')}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#ff69b4]" />
-                  <span className="text-[10px] font-black uppercase text-[#C4A0AC]">{t('mentalHealth.joyIndex', 'Joy Index')}</span>
-                </div>
-              </div>
-              {/* Chart — fixed 192px (h-48) container, bars use pixel height */}
-              <div className="flex items-end gap-3 md:gap-6 px-2" style={{ height: '192px' }}>
-                {chartData.map((d, i) => {
-                  const barH = Math.max(8, Math.round((d.value / 100) * 180));
-                  return (
-                    <div key={i} className="flex-1 flex flex-col items-center justify-end gap-3 group" style={{ height: '192px' }}>
-                      <div className="w-full relative" style={{ height: '160px', display: 'flex', alignItems: 'flex-end' }}>
-                        <div className="w-full bg-rose-50 rounded-t-xl overflow-hidden" style={{ height: '160px', position: 'relative' }}>
-                          <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: barH }}
-                            transition={{ duration: 1.2, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                            style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderRadius: '10px 10px 0 0' }}
-                            className={d.hasLog ? 'bg-[#ff69b4] shadow-lg shadow-rose-200 group-hover:brightness-110 cursor-pointer transition-all' : 'bg-[#ff69b4]/60 cursor-pointer'}
-                          />
-                        </div>
+            {(() => {
+              const loggedDays = chartData.filter(d => d.hasLog);
+              const avgJoyIndex = loggedDays.length > 0
+                ? Math.round(loggedDays.reduce((sum, d) => sum + d.value, 0) / loggedDays.length)
+                : null;
+              const todayObj = chartData.find(d => d.isToday);
+
+              return (
+                <motion.div variants={item}
+                  className="bg-white/80 backdrop-blur-2xl rounded-[3.5rem] p-8 md:p-12 border border-white/60 shadow-xl shadow-rose-100/30 relative overflow-hidden">
+                  
+                  {/* Chart Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#ff69b4]" />
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-[#C4A0AC]">{t('mentalHealth.emotionalFrequency', 'Emotional Frequency')}</h3>
                       </div>
-                      <span className={`text-[10px] font-black transition-colors ${d.hasLog ? 'text-[#ff69b4]' : 'text-[#C4A0AC] group-hover:text-[#ff69b4]'}`}>
-                        {t('mentalHealth.days.' + d.day, d.day)}
-                      </span>
+                      <p className="text-2xl md:text-3xl font-black text-[#15192c] mt-1">{t('mentalHealth.weeklyPulseOverview', 'Weekly Pulse Overview')}</p>
                     </div>
-                  );
-                })}
-              </div>
-              <p className="text-[10px] text-[#C4A0AC] font-bold text-center mt-6">
-                {chartData.length > 0 && chartData.every(d => d.isDummy)
-                  ? t('mentalHealth.noHistoryTip', '✨ Start logging your mood daily to see your real emotional pattern')
-                  : `${chartData.filter(d => d.hasLog).length} ${t('mentalHealth.daysLoggedThisWeek', 'days logged this week')}`}
-              </p>
-            </motion.div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="px-4 py-2 rounded-full bg-pink-50 border border-pink-100 flex items-center gap-2 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-[#ff69b4] animate-pulse" />
+                        <span className="text-xs font-black text-[#15192c]">
+                          {t('mentalHealth.joyIndex', 'Joy Index')}: <strong className="text-[#ff69b4]">{avgJoyIndex !== null ? `${avgJoyIndex}%` : '--'}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chart Container */}
+                  <div className="flex items-end gap-3 md:gap-5 px-1 md:px-3" style={{ height: '210px' }}>
+                    {chartData.map((d, i) => {
+                      const barH = d.hasLog ? Math.max(24, Math.round((d.value / 100) * 155)) : 0;
+                      return (
+                        <div 
+                          key={i} 
+                          onClick={() => setShowMoodModal(true)}
+                          className="flex-1 flex flex-col items-center justify-end gap-2.5 group relative cursor-pointer" 
+                          style={{ height: '210px' }}
+                        >
+                          {/* Tooltip on Hover */}
+                          <div className="absolute -top-12 z-30 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none bg-[#15192c] text-white px-3 py-1.5 rounded-xl text-[10px] font-bold shadow-2xl whitespace-nowrap flex items-center gap-1.5 border border-white/10 scale-95 group-hover:scale-100">
+                            <span>{d.emoji || '📅'}</span>
+                            <span>{d.day}: {d.hasLog ? `${d.moodType} (${d.value}% Joy)` : (d.isFuture ? 'Upcoming' : 'No log (Tap to log)')}</span>
+                          </div>
+
+                          <div className="w-full relative" style={{ height: '160px', display: 'flex', alignItems: 'flex-end' }}>
+                            {/* Bar Column Container */}
+                            <div className={`w-full rounded-t-2xl overflow-hidden relative transition-all duration-300 ${
+                              d.isToday 
+                                ? 'bg-pink-100/70 ring-2 ring-[#ff69b4]/50 shadow-sm' 
+                                : 'bg-rose-50/60 hover:bg-rose-100/50'
+                            }`} style={{ height: '160px' }}>
+                              
+                              {d.hasLog ? (
+                                /* Actual Dynamic Bar */
+                                <motion.div
+                                  initial={{ height: 0 }}
+                                  animate={{ height: barH }}
+                                  transition={{ duration: 0.9, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                                  style={{ 
+                                    position: 'absolute', 
+                                    bottom: 0, 
+                                    left: 0, 
+                                    right: 0, 
+                                    borderRadius: '14px 14px 0 0',
+                                    backgroundColor: d.color || '#ff69b4'
+                                  }}
+                                  className="shadow-md group-hover:brightness-110 transition-all flex flex-col items-center justify-start pt-2"
+                                >
+                                  <span className="text-xs">{d.emoji}</span>
+                                </motion.div>
+                              ) : (
+                                /* Empty Unlogged Slot */
+                                <div className="w-full h-full flex flex-col items-center justify-end pb-2">
+                                  {d.isToday && (
+                                    <div className="flex flex-col items-center gap-1 mb-2 animate-bounce">
+                                      <span className="text-[9px] font-black uppercase text-[#ff69b4] bg-white px-2 py-0.5 rounded-full shadow-sm border border-rose-100">
+                                        + Log
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className={`w-full h-1.5 rounded-full ${d.isToday ? 'bg-[#ff69b4]/60' : 'bg-rose-200/50'}`} />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Day Label with Today indicator */}
+                          <div className="flex flex-col items-center">
+                            <span className={`text-[10px] font-black tracking-wider transition-colors ${
+                              d.isToday 
+                                ? 'text-[#ff69b4] font-black scale-105' 
+                                : d.hasLog 
+                                  ? 'text-[#15192c]' 
+                                  : 'text-[#C4A0AC] group-hover:text-[#ff69b4]'
+                            }`}>
+                              {t('mentalHealth.days.' + d.day, d.day)}
+                            </span>
+                            {d.isToday && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#ff69b4] mt-0.5" />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Summary & In-Page Action Footer */}
+                  <div className="mt-8 pt-6 border-t border-rose-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-center sm:text-left">
+                      <p className="text-xs font-bold text-[#15192c]">
+                        {loggedDays.length > 0 ? (
+                          <span>
+                            ✨ <strong className="text-[#ff69b4]">{loggedDays.length} of 7 days</strong> logged this week • Weekly Average Joy: <strong className="text-[#ff69b4]">{avgJoyIndex}%</strong>
+                          </span>
+                        ) : (
+                          <span className="text-[#9A8A8E]">
+                            ✨ No mood logged for this week yet. Log your daily pulse to see your real emotional patterns!
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-[10px] text-[#C4A0AC] font-semibold mt-0.5">
+                        {todayObj?.hasLog 
+                          ? `✓ Today's pulse recorded: ${todayObj.moodType} ${todayObj.emoji} (${todayObj.value}% Joy)` 
+                          : "Tap any day or 'Log Mood Pulse' to record today's state"}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowMoodModal(true)}
+                      className="px-5 py-2.5 bg-[#ff69b4] hover:bg-pink-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-pink-200 hover:scale-[1.02] flex items-center gap-2 shrink-0 cursor-pointer"
+                    >
+                      <Zap size={14} />
+                      <span>{todayObj?.hasLog ? "Update Today's Mood 🌸" : "Log Mood Pulse 🌸"}</span>
+                    </button>
+                  </div>
+
+                </motion.div>
+              );
+            })()}
 
             {/* Resilience Tools */}
             <motion.section variants={item} className="space-y-10">
@@ -444,7 +900,7 @@ const MentalHealthScreen = () => {
             </motion.div>
 
             {/* Mood Log Shortcut */}
-            <motion.div variants={item} onClick={() => navigate('/app')}
+            <motion.div variants={item} onClick={() => setShowMoodModal(true)}
               className="p-8 bg-gradient-to-br from-[#ff69b4]/10 to-purple-50 rounded-[3rem] border border-rose-100 cursor-pointer group hover:shadow-lg transition-all">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-[#ff69b4] flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg shadow-rose-200">

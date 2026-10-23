@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Briefcase, Sparkles, Play, Award, ArrowRight, Share2, DollarSign, ChevronLeft, X, CheckCircle2 
@@ -10,14 +10,72 @@ import memberApi from '../../api/memberApi';
 import useFeatureAccess from '../../hooks/useFeatureAccess';
 import LockedFeature from '../../components/subscription/LockedFeature';
 
+const TRAINING_VIDEOS = {
+  en: "https://ik.imagekit.io/1udyzgff6/health-sakhi-english%20.mp4",
+  hi: "https://ik.imagekit.io/jcohpdmi8/health-sakhi%20(1).mp4",
+  mr: "https://ik.imagekit.io/xzmohzonk/WhatsApp%20Video%202026-07-08%20at%205.32.19%20PM.mp4"
+};
+
 const PartnerSakhiScreen = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, langCode } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+
+  const getInitialLang = (code) => {
+    if (code === 'hi') return 'hi';
+    if (code === 'mr') return 'mr';
+    return 'en';
+  };
+  const [selectedVideoLang, setSelectedVideoLang] = useState(getInitialLang(langCode));
+  const videoRef = useRef(null);
+  const [restoreTime, setRestoreTime] = useState(null);
+
+  // Sync selected video language when modal opens or app language changes
+  useEffect(() => {
+    if (showVideoModal) {
+      setSelectedVideoLang(getInitialLang(langCode));
+    }
+  }, [showVideoModal, langCode]);
+
+  // Handle switching video language dynamically
+  const handleVideoLangChange = (newLang) => {
+    if (newLang === selectedVideoLang) return;
+    if (videoRef.current) {
+      setRestoreTime(videoRef.current.currentTime);
+    }
+    setSelectedVideoLang(newLang);
+  };
+
+  const handleVideoLoadedMetadata = () => {
+    if (restoreTime !== null && videoRef.current) {
+      videoRef.current.currentTime = restoreTime;
+      setRestoreTime(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
+  const handleCloseVideoModal = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    setShowVideoModal(false);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && showVideoModal) {
+        handleCloseVideoModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showVideoModal]);
 
   useEffect(() => {
     fetchUserData();
@@ -119,15 +177,28 @@ const PartnerSakhiScreen = () => {
           {/* Video Thumbnail Box */}
           <div 
             onClick={handlePlayVideo}
-            className="w-full aspect-[16/9] md:aspect-[21/9] max-h-[420px] bg-[#1E1B4B] rounded-2xl flex items-center justify-center relative overflow-hidden cursor-pointer group shadow-inner"
+            className="w-full aspect-[16/9] md:aspect-[21/9] max-h-[420px] bg-gradient-to-br from-[#1E1B4B] via-[#0F172A] to-[#2D1B3D] rounded-2xl flex flex-col items-center justify-center relative overflow-hidden cursor-pointer group shadow-xl border border-slate-800"
           >
+            {/* Background glowing aura */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+            <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#EC4899]/20 rounded-full blur-3xl pointer-events-none group-hover:bg-[#EC4899]/30 transition-all duration-700" />
+            
             {/* Play Circle Icon */}
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#EC4899] flex items-center justify-center text-white shadow-[0_0_30px_rgba(236,72,153,0.7)] group-hover:scale-110 transition-transform">
+            <div className="relative z-10 w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-tr from-[#EC4899] to-pink-500 flex items-center justify-center text-white shadow-[0_0_35px_rgba(236,72,153,0.8)] group-hover:scale-110 group-hover:shadow-[0_0_50px_rgba(236,72,153,1)] transition-all duration-300">
               <Play size={32} className="fill-current ml-1" />
+            </div>
+            <span className="relative z-10 text-xs md:text-sm font-bold text-pink-200 mt-3 tracking-wide group-hover:text-white transition-colors">
+              Click to Play Orientation Guide
+            </span>
+
+            {/* Top Left HD Badge */}
+            <div className="absolute top-4 left-4 z-10 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase text-pink-300 border border-white/10 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              1080p HD
             </div>
 
             {/* Duration Badge */}
-            <div className="absolute bottom-4 right-4 bg-black/75 backdrop-blur-sm px-3.5 py-1.5 rounded-xl text-[10px] md:text-xs font-extrabold text-white">
+            <div className="absolute bottom-4 right-4 z-10 bg-black/75 backdrop-blur-sm px-3.5 py-1.5 rounded-xl text-[10px] md:text-xs font-extrabold text-white border border-white/10">
               {t('partnerSakhi.durationBadge', '3:24 mins • HD Training')}
             </div>
           </div>
@@ -207,44 +278,117 @@ const PartnerSakhiScreen = () => {
       {/* ── Training Video Modal ── */}
       <AnimatePresence>
         {showVideoModal && (
-          <div className="fixed inset-0 z-[999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 z-[100000] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto"
+            onClick={handleCloseVideoModal}
+          >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0F172A] text-white rounded-3xl p-6 md:p-8 max-w-3xl w-full shadow-2xl relative border border-slate-700"
+              initial={{ scale: 0.92, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.92, opacity: 0, y: 15 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#0F172A] text-white rounded-3xl p-5 md:p-7 max-w-4xl w-full shadow-[0_0_60px_rgba(236,72,153,0.3)] relative border border-slate-700/80 my-auto flex flex-col"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Play size={20} className="text-[#EC4899] fill-current" />
-                  <h3 className="text-lg font-black">{t('partnerSakhi.modalTitle', 'Partner Sakhi Training Video 🎬')}</h3>
+              {/* Modal Header */}
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#EC4899] to-purple-600 flex items-center justify-center text-white shadow-md shadow-pink-500/20">
+                    <Play size={18} className="fill-current ml-0.5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base md:text-lg font-black text-white flex items-center gap-2">
+                      {t('partnerSakhi.modalTitle', 'Partner Sakhi Training Video 🎬')}
+                    </h3>
+                    <p className="text-[11px] font-semibold text-slate-400">
+                      {t('partnerSakhi.durationBadge', '3:24 mins • 1080p HD')}
+                    </p>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setShowVideoModal(false)}
-                  className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-white hover:bg-slate-700 transition-colors cursor-pointer"
-                >
-                  <X size={20} />
-                </button>
+
+                <div className="flex items-center gap-3">
+                  {/* Language Selector Pills */}
+                  <div className="flex bg-slate-900/90 rounded-full p-1 border border-slate-700 shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => handleVideoLangChange('en')}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        selectedVideoLang === 'en'
+                          ? 'bg-gradient-to-r from-[#EC4899] to-purple-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      English
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleVideoLangChange('hi')}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        selectedVideoLang === 'hi'
+                          ? 'bg-gradient-to-r from-[#EC4899] to-purple-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      हिंदी
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleVideoLangChange('mr')}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        selectedVideoLang === 'mr'
+                          ? 'bg-gradient-to-r from-[#EC4899] to-purple-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      मराठी
+                    </button>
+                  </div>
+
+                  {/* Close button */}
+                  <button
+                    type="button"
+                    onClick={handleCloseVideoModal}
+                    className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white hover:bg-[#EC4899] transition-all cursor-pointer shadow-sm"
+                    aria-label="Close"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
 
-              {/* Simulated HD Video Player Frame */}
-              <div className="w-full aspect-video bg-slate-900 rounded-2xl overflow-hidden flex flex-col items-center justify-center relative border border-slate-800 p-6 text-center">
-                <div className="w-18 h-18 rounded-full bg-[#EC4899] flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(236,72,153,0.7)] animate-pulse">
-                  <Play size={32} className="fill-current text-white ml-1" />
-                </div>
-                <h4 className="text-xl font-black mb-2 text-white">{t('partnerSakhi.modalVideoHeading', '"How to share referral links & earn 15% commissions"')}</h4>
-                <p className="text-xs md:text-sm text-slate-400 max-w-lg leading-relaxed">
-                  {t('partnerSakhi.modalVideoDesc', 'Official Partner Sakhi orientation guide. Learn how to generate custom referral links, track earnings, and request payouts.')}
-                </p>
-                <div className="mt-5 px-5 py-2 rounded-full bg-slate-800 text-xs font-mono text-[#EC4899]">
-                  00:45 / 03:24 • 1080p HD Streaming
-                </div>
+              {/* Real HD Video Player with Native HTML5 Controls */}
+              <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden relative border border-slate-800 shadow-2xl flex items-center justify-center">
+                <video
+                  ref={videoRef}
+                  src={TRAINING_VIDEOS[selectedVideoLang] || TRAINING_VIDEOS.en}
+                  controls
+                  autoPlay
+                  playsInline
+                  onLoadedMetadata={handleVideoLoadedMetadata}
+                  className="w-full h-full object-contain"
+                />
               </div>
 
-              <div className="mt-5 flex justify-end">
+              {/* Video Info & Description strip */}
+              <div className="mt-4 pt-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h4 className="text-sm md:text-base font-black text-white">
+                    {t('partnerSakhi.modalVideoHeading', '"How to share referral links & earn 15% commissions"')}
+                  </h4>
+                  <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
+                    {t('partnerSakhi.modalVideoDesc', 'Official Partner Sakhi orientation guide. Learn how to generate custom referral links, track earnings, and request payouts.')}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-bold text-pink-300">
+                    <span className="px-2 py-0.5 rounded-md bg-pink-500/20 border border-pink-500/30">💸 15% Commission</span>
+                    <span className="px-2 py-0.5 rounded-md bg-purple-500/20 border border-purple-500/30">🔗 Custom Referral Links</span>
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30">⚡ Instant Bank Payouts</span>
+                  </div>
+                </div>
+
                 <button
-                  onClick={() => setShowVideoModal(false)}
-                  className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                  type="button"
+                  onClick={handleCloseVideoModal}
+                  className="self-end md:self-center px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 border border-slate-700 hover:border-slate-600"
                 >
                   {t('partnerSakhi.closeVideo', 'Close Video')}
                 </button>

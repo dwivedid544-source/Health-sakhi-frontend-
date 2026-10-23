@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Star, Zap, Gift, ChevronLeft, ChevronRight, Award, Sparkles, CheckCircle2, Clock, Lock, Loader2, Copy, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
 import memberApi from '../../api/memberApi';
 import affiliateApi from '../../api/affiliateApi';
 
 const RewardsScreen = () => {
   const navigate = useNavigate();
+  const { t, langCode } = useLanguage();
   const [unlockedGifts, setUnlockedGifts] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('Reward Unlocked! ✨');
@@ -210,41 +212,48 @@ const RewardsScreen = () => {
   const certificateStages = [
     {
       id: 1,
-      name: 'Basic Certificate',
-      stageLabel: 'Stage 1',
+      name: t('rewards.stages.basicName', 'Basic Certificate'),
+      stageLabel: `${t('rewards.stage', 'Stage')} 1`,
       icon: Award,
       color: '#ff69b4',
-      description: 'Complete 5 Books & 15 Active Days',
+      description: t('rewards.stages.basicDesc', 'Complete 5 Books & 15 Active Days'),
       isEarned: earnedStagesCount >= 1
     },
     {
       id: 2,
-      name: 'Advance Certificate',
-      stageLabel: 'Stage 2',
+      name: t('rewards.stages.advanceName', 'Advance Certificate'),
+      stageLabel: `${t('rewards.stage', 'Stage')} 2`,
       icon: Trophy,
       color: '#8b5cf6',
-      description: 'Complete 15 Books & 30 Active Days',
+      description: t('rewards.stages.advanceDesc', 'Complete 15 Books & 30 Active Days'),
       isEarned: earnedStagesCount >= 2
     },
     {
       id: 3,
-      name: 'Gold Ambassador',
-      stageLabel: 'Stage 3',
+      name: t('rewards.stages.goldName', 'Gold Ambassador'),
+      stageLabel: `${t('rewards.stage', 'Stage')} 3`,
       icon: Star,
       color: '#f59e0b',
-      description: 'Complete 25 Books & 10 Referrals',
+      description: t('rewards.stages.goldDesc', 'Complete 25 Books & 10 Referrals'),
       isEarned: earnedStagesCount >= 3
     },
     {
       id: 4,
-      name: 'Platinum Leader',
-      stageLabel: 'Stage 4',
+      name: t('rewards.stages.platinumName', 'Platinum Leader'),
+      stageLabel: `${t('rewards.stage', 'Stage')} 4`,
       icon: Crown,
       color: '#0ea5e9',
-      description: 'Complete 40 Books & 25 Referrals',
+      description: t('rewards.stages.platinumDesc', 'Complete 40 Books & 25 Referrals'),
       isEarned: earnedStagesCount >= 4
     }
   ];
+
+  const getRankName = () => {
+    if (earnedStagesCount >= 4) return t('rewards.ranks.platinum', 'Platinum Health Leader 👑');
+    if (earnedStagesCount >= 3) return t('rewards.ranks.gold', 'Gold Ambassador 🌟');
+    if (earnedStagesCount >= 1) return t('rewards.ranks.master', 'Wellness Master 🌸');
+    return t('rewards.ranks.rising', 'Rising Sakhi 🌿');
+  };
 
   const handleUnlock = (gift) => {
     const price = parseInt(gift.price);
@@ -287,7 +296,7 @@ const RewardsScreen = () => {
     // Notify header to sync
     window.dispatchEvent(new Event('hs_balance_update'));
 
-    setToastMsg('Reward Unlocked! ✨');
+    setToastMsg(t('rewards.rewardUnlocked', 'Reward Unlocked! ✨'));
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
@@ -308,7 +317,7 @@ const RewardsScreen = () => {
     if (linkToCopy) {
       navigator.clipboard.writeText(linkToCopy);
       setCopiedInvite(true);
-      setToastMsg('Invite Link Copied! 📋');
+      setToastMsg(t('rewards.inviteCopied', 'Invite Link Copied! 📋'));
       setShowToast(true);
       setTimeout(() => {
         setCopiedInvite(false);
@@ -332,7 +341,7 @@ const RewardsScreen = () => {
       <div className="min-h-screen w-full bg-[#FFF7F8] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-[#ff69b4]">
           <Loader2 size={32} className="animate-spin" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Loading Rewards...</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">{t('rewards.loading', 'Loading Rewards...')}</span>
         </div>
       </div>
     );
@@ -362,8 +371,8 @@ const RewardsScreen = () => {
                 <ChevronLeft size={18} />
               </button>
               <div>
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-[#15192c]">Your Rewards</h1>
-                <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-[#C4A0AC]">Celebrate every small win</p>
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-[#15192c]">{t('rewards.title', 'Your Rewards')}</h1>
+                <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-[#C4A0AC]">{t('rewards.subtitle', 'Celebrate every small win')}</p>
               </div>
             </div>
 
@@ -398,9 +407,9 @@ const RewardsScreen = () => {
 
                 {/* Text Content */}
                 <div className="relative z-10">
-                  <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em] text-[#ff69b4] mb-1">SAVINGS STATUS</p>
+                  <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em] text-[#ff69b4] mb-1">{t('rewards.savingsStatus', 'SAVINGS STATUS')}</p>
                   <div className="flex items-center gap-2">
-                    <p className="text-lg md:text-2xl font-black tracking-tight text-white">OFFERS ACTIVE</p>
+                    <p className="text-lg md:text-2xl font-black tracking-tight text-white">{t('rewards.offersActive', 'OFFERS ACTIVE')}</p>
                     <span className="text-base md:text-xl">✨</span>
                   </div>
                 </div>
@@ -416,9 +425,9 @@ const RewardsScreen = () => {
             <motion.div variants={item} className="bg-white rounded-3xl md:rounded-[2rem] p-6 md:p-8 border border-rose-50 shadow-sm relative overflow-hidden">
               <div className="flex items-center gap-3 mb-4 md:mb-6">
                 <div className="w-9 h-9 md:w-10 md:h-10 bg-rose-50 rounded-xl flex items-center justify-center text-[#ff69b4] shadow-inner shrink-0"><Zap size={18} /></div>
-                <h4 className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-[#C4A0AC]">Active Streak</h4>
+                <h4 className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-[#C4A0AC]">{t('rewards.activeStreak', 'Active Streak')}</h4>
               </div>
-              <h3 className="text-3xl md:text-4xl font-black">{activeDays} Days 🔥</h3>
+              <h3 className="text-3xl md:text-4xl font-black">{activeDays} {t('rewards.days', 'Days')} 🔥</h3>
               <div className="mt-4 md:mt-6 h-1.5 w-full bg-rose-50 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: activeDays >= 30 ? '100%' : `${(activeDays / 30) * 100}%` }} className="h-full bg-[#ff69b4] rounded-full" />
               </div>
@@ -427,19 +436,19 @@ const RewardsScreen = () => {
             <motion.div variants={item} className="bg-white rounded-3xl md:rounded-[2rem] p-6 md:p-8 border border-rose-50 shadow-sm">
               <div className="flex items-center gap-3 mb-4 md:mb-6">
                 <div className="w-9 h-9 md:w-10 md:h-10 bg-rose-50 rounded-xl flex items-center justify-center text-[#ff69b4] shadow-inner shrink-0"><Trophy size={18} /></div>
-                <h4 className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-[#C4A0AC]">Certificate Stages</h4>
+                <h4 className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-[#C4A0AC]">{t('rewards.certificateStages', 'Certificate Stages')}</h4>
               </div>
               <h3 className="text-3xl md:text-4xl font-black">{earnedStagesCount.toString().padStart(2, '0')} <span className="text-base md:text-lg text-[#C4A0AC]">/ {certificateStages.length}</span></h3>
-              <p className="text-[9px] md:text-[10px] font-bold text-[#ff69b4] mt-2 uppercase tracking-widest">Master Status at {certificateStages.length} Stages</p>
+              <p className="text-[9px] md:text-[10px] font-bold text-[#ff69b4] mt-2 uppercase tracking-widest">{t('rewards.masterStatusAt', 'Master Status at 4 Stages')}</p>
             </motion.div>
 
             <motion.div variants={item} className="bg-[#15192c] rounded-3xl md:rounded-[2rem] p-6 md:p-8 text-white relative overflow-hidden sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-3 mb-4 md:mb-6 relative z-10">
                 <div className="w-9 h-9 md:w-10 md:h-10 bg-[#ff69b4] rounded-xl flex items-center justify-center shadow-lg shrink-0"><Star size={18} /></div>
-                <h4 className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-[#ff69b4]">Current Rank</h4>
+                <h4 className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-[#ff69b4]">{t('rewards.currentRank', 'Current Rank')}</h4>
               </div>
               <h3 className="text-xl md:text-2xl font-black relative z-10">
-                {earnedStagesCount === 4 ? 'Platinum Health Leader 👑' : earnedStagesCount === 3 ? 'Gold Ambassador 🌟' : earnedStagesCount >= 1 ? 'Wellness Master 🌸' : 'Rising Sakhi 🌿'}
+                {getRankName()}
               </h3>
               <div className="h-1 w-full bg-white/10 rounded-full mt-4 relative z-10">
                 <motion.div initial={{ width: 0 }} animate={{ width: `${(earnedStagesCount / certificateStages.length) * 100}%` }} className="h-full bg-[#ff69b4] rounded-full" />
@@ -450,8 +459,8 @@ const RewardsScreen = () => {
           {/* Certificate Stages Grid */}
           <motion.section variants={item} className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#C4A0AC]">Certificate Milestone Stages</h3>
-              <span className="text-[9px] font-bold text-[#ff69b4] uppercase tracking-widest">{earnedStagesCount} / {certificateStages.length} Earned</span>
+              <h3 className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#C4A0AC]">{t('rewards.milestoneStages', 'Certificate Milestone Stages')}</h3>
+              <span className="text-[9px] font-bold text-[#ff69b4] uppercase tracking-widest">{earnedStagesCount} / {certificateStages.length} {t('rewards.earned', 'Earned')}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {certificateStages.map((stage) => {
@@ -485,7 +494,7 @@ const RewardsScreen = () => {
                     
                     <div className="mt-4 pt-3 border-t border-rose-50/60 w-full flex items-center justify-center">
                       <span className={`text-[9px] font-black uppercase tracking-wider ${stage.isEarned ? 'text-emerald-600' : 'text-slate-400'}`}>
-                        {stage.isEarned ? '✓ STAGE COMPLETED' : '🔒 STAGE LOCKED'}
+                        {stage.isEarned ? t('rewards.stageCompleted', '✓ STAGE COMPLETED') : t('rewards.stageLocked', '🔒 STAGE LOCKED')}
                       </span>
                     </div>
                   </motion.div>
@@ -510,13 +519,13 @@ const RewardsScreen = () => {
                     <Crown size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl md:text-2xl font-black text-white">Wellness Certificate Special Subscription Discount 🌸</h3>
-                    <p className="text-xs font-bold text-pink-200 uppercase tracking-widest mt-0.5">Complete Certificate Milestones to Unlock Exclusive Plan Discounts!</p>
+                    <h3 className="text-xl md:text-2xl font-black text-white">{t('rewards.discountBannerTitle', 'Wellness Certificate Special Subscription Discount 🌸')}</h3>
+                    <p className="text-xs font-bold text-pink-200 uppercase tracking-widest mt-0.5">{t('rewards.discountBannerSubtitle', 'Complete Certificate Milestones to Unlock Exclusive Plan Discounts!')}</p>
                   </div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/15 flex items-center gap-2">
-                  <span className="text-xs font-black text-pink-300">Milestone Offers:</span>
-                  <span className="text-xs font-bold text-white">Basic Cert = ₹50 OFF | Advance Cert = ₹100 OFF</span>
+                  <span className="text-xs font-black text-pink-300">{t('rewards.milestoneOffers', 'Milestone Offers:')}</span>
+                  <span className="text-xs font-bold text-white">{t('rewards.milestoneOffersDesc', 'Basic Cert = ₹50 OFF | Advance Cert = ₹100 OFF')}</span>
                 </div>
               </div>
 
@@ -541,26 +550,26 @@ const RewardsScreen = () => {
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full">
-                              Basic Sakhi Plan
+                              {t('rewards.basicPlanBadge', 'Basic Sakhi Plan')}
                             </span>
                             {hasBasicCert && (
                               <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                                <CheckCircle2 size={14} /> ₹50 OFF Unlocked!
+                                <CheckCircle2 size={14} /> ₹50 {t('rewards.offUnlocked', 'OFF Unlocked!')}
                               </span>
                             )}
                           </div>
 
                           <div className="space-y-2">
-                            <h4 className="text-xl font-black text-white">1 Month Unlimited Access</h4>
+                            <h4 className="text-xl font-black text-white">{t('rewards.basicPlanTitle', '1 Month Unlimited Access')}</h4>
                             <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                              Unlocks AI Chat Bot 24/7, All Books Unlimited & Basic Wellness Certificate Download.
+                              {t('rewards.basicPlanDesc', 'Unlocks AI Chat Bot 24/7, All Books Unlimited & Basic Wellness Certificate Download.')}
                             </p>
                           </div>
 
                           <div className="pt-2 border-t border-white/10 flex items-baseline gap-3">
                             <span className="text-3xl font-black text-[#ff69b4]">₹{basicPrice}</span>
                             {basicDiscount > 0 && <span className="text-sm font-bold text-slate-400 line-through">₹499</span>}
-                            <span className="text-xs text-slate-400 font-semibold">/month</span>
+                            <span className="text-xs text-slate-400 font-semibold">{t('rewards.perMonth', '/month')}</span>
                           </div>
                         </div>
 
@@ -571,7 +580,7 @@ const RewardsScreen = () => {
                           }}
                           className="w-full py-3.5 bg-[#ff69b4] hover:bg-pink-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg cursor-pointer"
                         >
-                          {hasBasicCert ? `GET BASIC PLAN FOR ₹${basicPrice} ⚡` : 'UPGRADE BASIC FOR ₹499'}
+                          {hasBasicCert ? `${t('rewards.getBasicPlanFor', 'GET BASIC PLAN FOR')} ₹${basicPrice} ⚡` : t('rewards.upgradeBasicFor', 'UPGRADE BASIC FOR ₹499')}
                         </button>
                       </div>
 
@@ -580,26 +589,26 @@ const RewardsScreen = () => {
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-pink-500/30 text-pink-200 border border-pink-500/40 rounded-full">
-                              Premium Sakhi Plan 👑
+                              {t('rewards.premiumPlanBadge', 'Premium Sakhi Plan 👑')}
                             </span>
                             {premiumDiscount > 0 && (
                               <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                                <CheckCircle2 size={14} /> ₹{premiumDiscount} OFF Unlocked!
+                                <CheckCircle2 size={14} /> ₹{premiumDiscount} {t('rewards.offUnlocked', 'OFF Unlocked!')}
                               </span>
                             )}
                           </div>
 
                           <div className="space-y-2">
-                            <h4 className="text-xl font-black text-white">Full Unlimited Year Access</h4>
+                            <h4 className="text-xl font-black text-white">{t('rewards.premiumPlanTitle', 'Full Unlimited Year Access')}</h4>
                             <p className="text-xs text-pink-100 font-medium leading-relaxed">
-                              Full access to AI Sakhi Bot, Partner Sakhi, Ask Health Sakhi, and ALL Wellness Certificates!
+                              {t('rewards.premiumPlanDesc', 'Full access to AI Sakhi Bot, Partner Sakhi, Ask Health Sakhi, and ALL Wellness Certificates!')}
                             </p>
                           </div>
 
                           <div className="pt-2 border-t border-white/10 flex items-baseline gap-3">
                             <span className="text-3xl font-black text-[#ff69b4]">₹{premiumPrice}</span>
                             {premiumDiscount > 0 && <span className="text-sm font-bold text-slate-400 line-through">₹999</span>}
-                            <span className="text-xs text-slate-400 font-semibold">/year</span>
+                            <span className="text-xs text-slate-400 font-semibold">{t('rewards.perYear', '/year')}</span>
                           </div>
                         </div>
 
@@ -610,28 +619,28 @@ const RewardsScreen = () => {
                           }}
                           className="w-full py-3.5 bg-gradient-to-r from-[#ff69b4] to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-xl cursor-pointer"
                         >
-                          {premiumDiscount > 0 ? `GET PREMIUM PLAN FOR ₹${premiumPrice} 👑` : 'UPGRADE PREMIUM FOR ₹999'}
+                          {premiumDiscount > 0 ? `${t('rewards.getPremiumPlanFor', 'GET PREMIUM PLAN FOR')} ₹${premiumPrice} 👑` : t('rewards.upgradePremiumFor', 'UPGRADE PREMIUM FOR ₹999')}
                         </button>
                       </div>
                     </div>
 
                     {/* How Certificate Discounts Work Guide */}
                     <div className="pt-4 border-t border-white/10">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff69b4] mb-4">How Certificate Milestone Discounts Work</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff69b4] mb-4">{t('rewards.howItWorksTitle', 'How Certificate Milestone Discounts Work')}</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center gap-4">
                           <div className="w-11 h-11 bg-amber-500/20 rounded-xl flex items-center justify-center text-amber-300 text-xl font-black shrink-0">📜</div>
                           <div>
-                            <p className="text-sm font-bold text-white">Basic Wellness Certificate Milestone</p>
-                            <p className="text-xs font-bold text-pink-300 mt-0.5">Complete 5 Books & 15 Active Days → Get ₹50 OFF (Basic ₹449 / Premium ₹949)</p>
+                            <p className="text-sm font-bold text-white">{t('rewards.basicMilestoneTitle', 'Basic Wellness Certificate Milestone')}</p>
+                            <p className="text-xs font-bold text-pink-300 mt-0.5">{t('rewards.basicMilestoneDesc', 'Complete 5 Books & 15 Active Days → Get ₹50 OFF (Basic ₹449 / Premium ₹949)')}</p>
                           </div>
                         </div>
 
                         <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center gap-4">
                           <div className="w-11 h-11 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-300 text-xl font-black shrink-0">🎓</div>
                           <div>
-                            <p className="text-sm font-bold text-white">Advance Wellness Certificate Milestone</p>
-                            <p className="text-xs font-bold text-pink-300 mt-0.5">Complete 15 Books & 30 Active Days → Get ₹100 OFF (Premium ₹899)</p>
+                            <p className="text-sm font-bold text-white">{t('rewards.advanceMilestoneTitle', 'Advance Wellness Certificate Milestone')}</p>
+                            <p className="text-xs font-bold text-pink-300 mt-0.5">{t('rewards.advanceMilestoneDesc', 'Complete 15 Books & 30 Active Days → Get ₹100 OFF (Premium ₹899)')}</p>
                           </div>
                         </div>
                       </div>

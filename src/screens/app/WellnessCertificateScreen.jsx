@@ -407,7 +407,7 @@ const WellnessCertificateScreen = () => {
       {/* Unlock Success Modal */}
       <AnimatePresence>
         {showUnlockModal && (
-          <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100000] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
